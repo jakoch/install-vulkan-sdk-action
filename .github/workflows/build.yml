@@ -61,12 +61,10 @@ jobs:
       - name: Show Env Vars and SDK folder
         if: contains(matrix.config.OS, 'ubuntu')
         run: |
-          echo $PATH
-          echo $VULKAN_VERSION
-          echo $VULKAN_SDK
-          du -hs $VULKAN_SDK
-          $VULKAN_SDK/x86_64/bin/vulkaninfo --help
-          ./$VULKAN_SDK/setup-env.sh
+          echo PATH = $PATH
+          echo VULKAN_VERSION = $VULKAN_VERSION
+          echo VULKAN_SDK = $VULKAN_SDK
+          echo Directory Size = `du -hs $VULKAN_SDK`
 
       - name: Show Env Vars and SDK folder
         if: contains(matrix.config.OS, 'windows')
@@ -75,4 +73,3 @@ jobs:
           echo %VULKAN_VERSION%
           echo %VULKAN_SDK%
           dir %VULKAN_SDK%
-          %VULKAN_SDK%/bin/vulkaninfoSDK --help

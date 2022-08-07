@@ -306,15 +306,15 @@ const fs = __importStar(__nccwpck_require__(147));
 const platform = __importStar(__nccwpck_require__(238));
 const tc = __importStar(__nccwpck_require__(784));
 const exec_1 = __nccwpck_require__(514);
-async function install_vulkan_sdk(sdk_installer_filepath, destination, version) {
+async function install_vulkan_sdk(sdk_path, destination, version) {
     let install_path = '';
     core.info(`📦 Extracting Vulkan SDK...`);
-    core.info(`    File: ${sdk_installer_filepath}`);
+    core.info(`    File: ${sdk_path}`);
     if (platform.IS_MAC) {
         // TODO
     }
     if (platform.IS_LINUX) {
-        install_path = await extract_archive(sdk_installer_filepath, destination);
+        install_path = await extract_archive(sdk_path, destination);
         const cachedPath = await tc.cacheDir(install_path, 'vulkan_sdk', version, platform.OS_ARCH);
         core.addPath(cachedPath);
     }
@@ -324,7 +324,7 @@ async function install_vulkan_sdk(sdk_installer_filepath, destination, version) 
         //                           com.lunarg.vulkan.thirdparty
         //                           com.lunarg.vulkan.debug
         //                           com.lunarg.vulkan.debug32
-        const exitCode = await (0, exec_1.exec)(sdk_installer_filepath, [
+        const exitCode = await (0, exec_1.exec)(sdk_path, [
             '--root',
             destination,
             '--accept-licenses',
