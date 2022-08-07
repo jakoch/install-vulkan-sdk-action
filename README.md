@@ -1,8 +1,8 @@
 [![GitHub Releases](https://img.shields.io/github/release/jakoch/install-vulkan-sdk-action.svg?style=flat-square)](https://github.com/jakoch/install-vulkan-sdk-action/releases/latest)
 [![GitHub Marketplace](https://img.shields.io/badge/marketplace-install-vulkan-sdk-action?logo=github&style=flat-square)](https://github.com/marketplace/actions/install-vulkan-sdk-action)
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jakoch/install-vulkan-sdk-action/%F0%9F%9A%80%20Build%20and%20Test?label=%F0%9F%9A%80%20Build%20and%20Test&logo=github&style=flat-square)](https://github.com/jakoch/install-vulkan-sdk-action/actions?workflow=build.yml)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jakoch/install-vulkan-sdk-action/%F0%9F%9A%80%20Build%20and%20Test?label=%F0%9F%9A%80%20Build%20and%20Test&logo=github&style=flat-square)](https://github.com/jakoch/install-vulkan-sdk-action/actions/workflows/build.yml)
 
-# Github Action ➔ Install Vulkan SDK
+# Github Action: Install Vulkan SDK
 
 A Github Action to install the Vulkan SDK and it's runtime.
 
@@ -10,17 +10,18 @@ This action can be used to install the Vulkan SDK in your Github Action workflow
 
 ___
 
-* [Vulkan](#vulkan)
-  * [Websites](#websites)
-  * [What is Vulkan?](#what-is-vulkan)
-* [Usage](#usage)
-  * [Quick start](#quick-start)
-* [Customizing](#customizing)
-  * [Inputs](#inputs)
-  * [Outputs](#outputs)
-  * [Environment variables](#environment-variables)
-* [Keep up-to-date with GitHub Dependabot](#keep-up-to-date-with-github-dependabot)
-* [License](#license)
+- [Github Action: Install Vulkan SDK](#github-action-install-vulkan-sdk)
+  - [Vulkan](#vulkan)
+    - [Websites](#websites)
+    - [What is Vulkan?](#what-is-vulkan)
+  - [Usage](#usage)
+    - [Quick start](#quick-start)
+  - [Action Reference](#action-reference)
+    - [Inputs](#inputs)
+    - [Outputs](#outputs)
+    - [Environment Variables](#environment-variables)
+  - [Keep up-to-date with GitHub Dependabot](#keep-up-to-date-with-github-dependabot)
+  - [License](#license)
 
 ## Vulkan
 

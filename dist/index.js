@@ -84,20 +84,22 @@ async function is_downloadable(name, version, url) {
     }
 }
 async function download_vulkan_sdk(version) {
-    const url = await get_url_vulkan_sdk(version);
     core.info(`🔽 Downloading Vulkan SDK ${version}`);
+    const url = await get_url_vulkan_sdk(version);
+    core.info(`   URL ${url}`);
     const sdk_path = await tc.downloadTool(url);
     core.info(`✔️ Download completed successfully!`);
-    core.info(`Path to installer file: ${sdk_path}`);
+    core.info(`   File: ${sdk_path}`);
     return sdk_path;
 }
 exports.download_vulkan_sdk = download_vulkan_sdk;
 async function download_vulkan_runtime(version) {
-    const url = await get_url_vulkan_runtime(version);
     core.info(`🔽 Downloading Vulkan Runtime ${version}`);
+    const url = await get_url_vulkan_runtime(version);
+    core.info(`   URL ${url}`);
     const runtime_path = await tc.downloadTool(url);
-    core.info(`✔️ download completed successfully!`);
-    core.info(`Path to runtime file: ${runtime_path}`);
+    core.info(`✔️ Download completed successfully!`);
+    core.info(`   File: ${runtime_path}`);
     return runtime_path;
 }
 exports.download_vulkan_runtime = download_vulkan_runtime;
@@ -350,15 +352,14 @@ async function install_vulkan_runtime(runtime_archive_filepath, destination) {
 exports.install_vulkan_runtime = install_vulkan_runtime;
 async function extract_archive(file, destination) {
     const extract = tc.extractTar;
-    if (process.platform === 'win32') {
-        if (file.endsWith('.zip')) {
-            const extract = tc.extractZip;
-        }
-        else if (file.endsWith('.7z')) {
-            const extract = tc.extract7z;
-        }
+    if (platform.IS_WINDOWS) {
+        //if (file.endsWith('.zip')) { // tc.download has no file extension WTF
+        const extract = tc.extractZip;
+        //} else if (file.endsWith('.7z')) {
+        //  const extract = tc.extract7z
+        //}
     }
-    else if (process.platform === 'darwin') {
+    else if (platform.IS_MAC) {
         const extract = tc.extractXar;
     }
     else {
@@ -476,10 +477,11 @@ async function run() {
         const inputs = await input.getInputs();
         const version = await version_getter.resolve_version(inputs.version);
         const sdk_path = await get_vulkan_sdk(version, inputs.destination, inputs.use_cache);
-        core.addPath(`${sdk_path}`);
+        const sdk_versionized_path = `${sdk_path}/${version}`;
+        core.addPath(`${sdk_versionized_path}`);
         core.info(`✔️ [PATH] Added path to Vulkan SDK to environment variable PATH.`);
-        core.exportVariable('VULKAN_SDK', `${sdk_path}`);
-        core.info(`✔️ [ENV] Set env variable VULKAN_SDK -> "${sdk_path}".`);
+        core.exportVariable('VULKAN_SDK', `${sdk_versionized_path}`);
+        core.info(`✔️ [ENV] Set env variable VULKAN_SDK -> "${sdk_versionized_path}".`);
         core.exportVariable('VULKAN_VERSION', `${version}`);
         core.info(`✔️ [ENV] Set env variable VULKAN_VERSION -> "${version}".`);
         core.setOutput('VULKAN_VERSION', version);

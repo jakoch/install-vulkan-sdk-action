@@ -61,11 +61,13 @@ async function run(): Promise<void> {
 
     const sdk_path = await get_vulkan_sdk(version, inputs.destination, inputs.use_cache)
 
-    core.addPath(`${sdk_path}`)
+    const sdk_versionized_path = `${sdk_path}/${version}`
+
+    core.addPath(`${sdk_versionized_path}`)
     core.info(`✔️ [PATH] Added path to Vulkan SDK to environment variable PATH.`)
 
-    core.exportVariable('VULKAN_SDK', `${sdk_path}`)
-    core.info(`✔️ [ENV] Set env variable VULKAN_SDK -> "${sdk_path}".`)
+    core.exportVariable('VULKAN_SDK', `${sdk_versionized_path}`)
+    core.info(`✔️ [ENV] Set env variable VULKAN_SDK -> "${sdk_versionized_path}".`)
 
     core.exportVariable('VULKAN_VERSION', `${version}`)
     core.info(`✔️ [ENV] Set env variable VULKAN_VERSION -> "${version}".`)

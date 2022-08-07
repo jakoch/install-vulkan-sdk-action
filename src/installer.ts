@@ -54,13 +54,13 @@ export async function install_vulkan_runtime(runtime_archive_filepath: string, d
 
 async function extract_archive(file: string, destination: string): Promise<string> {
   const extract = tc.extractTar
-  if (process.platform === 'win32') {
-    if (file.endsWith('.zip')) {
-      const extract = tc.extractZip
-    } else if (file.endsWith('.7z')) {
-      const extract = tc.extract7z
-    }
-  } else if (process.platform === 'darwin') {
+  if (platform.IS_WINDOWS) {
+    //if (file.endsWith('.zip')) { // tc.download has no file extension WTF
+    const extract = tc.extractZip
+    //} else if (file.endsWith('.7z')) {
+    //  const extract = tc.extract7z
+    //}
+  } else if (platform.IS_MAC) {
     const extract = tc.extractXar
   } else {
     const extract = tc.extractTar
