@@ -11,7 +11,8 @@ export async function install_vulkan_sdk(
 ): Promise<string> {
   let install_path = ''
 
-  core.info(`📦 Extracting Vulkan SDK...Filename: ${sdk_installer_filepath}`)
+  core.info(`📦 Extracting Vulkan SDK...`)
+  core.info(`    File: ${sdk_installer_filepath}`)
 
   if (platform.IS_MAC) {
     // TODO
@@ -55,11 +56,13 @@ export async function install_vulkan_runtime(runtime_archive_filepath: string, d
 async function extract_archive(file: string, destination: string): Promise<string> {
   const extract = tc.extractTar
   if (platform.IS_WINDOWS) {
-    //if (file.endsWith('.zip')) { // tc.download has no file extension WTF
-    const extract = tc.extractZip
-    //} else if (file.endsWith('.7z')) {
-    //  const extract = tc.extract7z
-    //}
+    if (file.endsWith('.exe')) {
+      return destination
+    } else if (file.endsWith('.zip')) {
+      const extract = tc.extractZip
+    } else if (file.endsWith('.7z')) {
+      const extract = tc.extract7z
+    }
   } else if (platform.IS_MAC) {
     const extract = tc.extractXar
   } else {

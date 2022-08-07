@@ -65,7 +65,7 @@ jobs:
           echo $VULKAN_VERSION
           echo $VULKAN_SDK
           du -hs $VULKAN_SDK
-          $VULKAN_SDK/x86_64/bin/vulkaninfo
+          $VULKAN_SDK/x86_64/bin/vulkaninfo --help
           ./$VULKAN_SDK/setup-env.sh
 
       - name: Show Env Vars and SDK folder
@@ -75,4 +75,4 @@ jobs:
           echo %VULKAN_VERSION%
           echo %VULKAN_SDK%
           dir %VULKAN_SDK%
-          %VULKAN_SDK%/bin/vulkaninfoSDK
+          %VULKAN_SDK%/bin/vulkaninfoSDK --help
