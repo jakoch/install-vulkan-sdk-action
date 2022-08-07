@@ -59,20 +59,18 @@ async function run(): Promise<void> {
 
     const version = await version_getter.resolve_version(inputs.version)
 
-    const sdk_installer_path = await get_vulkan_sdk(version, inputs.destination, inputs.use_cache)
+    const sdk_path = await get_vulkan_sdk(version, inputs.destination, inputs.use_cache)
 
-    const installation_path = await installer.install_vulkan_sdk(sdk_installer_path, inputs.destination, version)
-    /*
-    core.addPath(`${installation_path}`)
+    core.addPath(`${sdk_path}`)
     core.info(`✔️ [PATH] Added path to Vulkan SDK to environment variable PATH.`)
 
-    core.exportVariable('VULKAN_SDK', `${installation_path}`)
-    core.info(`✔️ [VULKAN_SDK] Added environment variable VULKAN_SDK -> "${installation_path}".`)
+    core.exportVariable('VULKAN_SDK', `${sdk_path}`)
+    core.info(`✔️ [ENV] Set env variable VULKAN_SDK -> "${sdk_path}".`)
 
     core.exportVariable('VULKAN_VERSION', `${version}`)
-    core.info(`✔️ [VULKAN_VERSION] Added environment variable VULKAN_VERSION -> "${version}".`)
+    core.info(`✔️ [ENV] Set env variable VULKAN_VERSION -> "${version}".`)
 
-    core.setOutput('VULKAN_VERSION', version)*/
+    core.setOutput('VULKAN_VERSION', version)
 
     if (inputs.install_runtime /*&& platform.IS_WINDOWS*/) {
       const install_path = await get_vulkan_runtime(version, inputs.destination, inputs.use_cache)
