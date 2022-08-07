@@ -200,8 +200,8 @@ async function getInputs() {
         version: await getInputVersion(core.getInput('version', { required: false })),
         destination: await getInputDestination(core.getInput('destination', { required: false })),
         install_runtime: /true/i.test(core.getInput('install_runtime', { required: false })),
-        use_cache: /true/i.test(core.getInput('cache', { required: false }))
-        //optional_components: await getInputOptionalComponents(core.getInput('optional_components', {required: false}))
+        use_cache: /true/i.test(core.getInput('cache', { required: false })),
+        optional_components: await getInputOptionalComponents(core.getInput('optional_components', { required: false }))
     };
 }
 exports.getInputs = getInputs;
@@ -217,6 +217,7 @@ async function getInputVersion(version) {
     if (requestedVersion === '') {
         requestedVersion = 'latest';
     }
+    core.info(`TEST`);
     return requestedVersion;
 }
 exports.getInputVersion = getInputVersion;
@@ -228,7 +229,7 @@ function validateVersion(version) {
 }
 exports.validateVersion = validateVersion;
 async function getInputDestination(destination) {
-    // if location wasn't specified, return default install location for platform
+    // return default install locations for platform
     if (!destination || destination === '') {
         if (platform.IS_WINDOWS) {
             destination = 'C:\\VulkanSDK';
@@ -260,10 +261,7 @@ async function getInputOptionalComponents(optional_components) {
         core.info(`❌ Please remove the following invalid optional_components: ${invalid_input_components}`);
     }
     const valid_input_components = input_components.filter(item => optional_components_allowlist.includes(item) === true);
-    if (valid_input_components.length == 0) {
-        core.info(`❌ Installing Optional Components: NONE`);
-    }
-    else {
+    if (valid_input_components.length > 0) {
         core.info(`✔️ Installing Optional Components: ${valid_input_components}`);
     }
     return valid_input_components;

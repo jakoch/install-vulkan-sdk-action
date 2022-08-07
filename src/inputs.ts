@@ -7,7 +7,7 @@ export interface Inputs {
   destination: string
   install_runtime: boolean
   use_cache: boolean
-  //optional_components: string[]
+  optional_components: string[]
 }
 
 export async function getInputs(): Promise<Inputs> {
@@ -15,8 +15,8 @@ export async function getInputs(): Promise<Inputs> {
     version: await getInputVersion(core.getInput('version', {required: false})),
     destination: await getInputDestination(core.getInput('destination', {required: false})),
     install_runtime: /true/i.test(core.getInput('install_runtime', {required: false})),
-    use_cache: /true/i.test(core.getInput('cache', {required: false}))
-    //optional_components: await getInputOptionalComponents(core.getInput('optional_components', {required: false}))
+    use_cache: /true/i.test(core.getInput('cache', {required: false})),
+    optional_components: await getInputOptionalComponents(core.getInput('optional_components', {required: false}))
   }
 }
 
@@ -48,7 +48,7 @@ export function validateVersion(version: string): boolean {
 }
 
 async function getInputDestination(destination: string): Promise<string> {
-  // if location wasn't specified, return default install location for platform
+  // return default install locations for platform
   if (!destination || destination === '') {
     if (platform.IS_WINDOWS) {
       destination = 'C:\\VulkanSDK'
@@ -89,9 +89,7 @@ export async function getInputOptionalComponents(optional_components: string): P
 
   const valid_input_components = input_components.filter(item => optional_components_allowlist.includes(item) === true)
 
-  if (valid_input_components.length == 0) {
-    core.info(`❌ Installing Optional Components: NONE`)
-  } else {
+  if (valid_input_components.length > 0) {
     core.info(`✔️ Installing Optional Components: ${valid_input_components}`)
   }
 
