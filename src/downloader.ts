@@ -61,7 +61,7 @@ async function is_downloadable(name: string, version: string, url: string) {
 export async function download_vulkan_sdk(version: string): Promise<string> {
   core.info(`🔽 Downloading Vulkan SDK ${version}`)
   const url = await get_url_vulkan_sdk(version)
-  core.info(`   URL ${url}`)
+  core.info(`    URL: ${url}`)
   const sdk_path = await tc.downloadTool(url)
   core.info(`✔️ Download completed successfully!`)
   core.info(`   File: ${sdk_path}`)
@@ -71,10 +71,10 @@ export async function download_vulkan_sdk(version: string): Promise<string> {
 export async function download_vulkan_runtime(version: string): Promise<string> {
   core.info(`🔽 Downloading Vulkan Runtime ${version}`)
   const url = await get_url_vulkan_runtime(version)
-  core.info(`   URL ${url}`)
+  core.info(`   URL: ${url}`)
   const runtime_path = await tc.downloadTool(url)
   core.info(`✔️ Download completed successfully!`)
-  core.info(`   File: ${runtime_path}`)
+  core.info(`    File: ${runtime_path}`)
   return runtime_path
 }
 

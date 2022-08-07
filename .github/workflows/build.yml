@@ -65,6 +65,8 @@ jobs:
           echo $VULKAN_VERSION
           echo $VULKAN_SDK
           du -hs $VULKAN_SDK
+          $VULKAN_SDK/x86_64/bin/vulkaninfo
+          ./$VULKAN_SDK/setup-env.sh
 
       - name: Show Env Vars and SDK folder
         if: contains(matrix.config.OS, 'windows')
@@ -73,7 +75,4 @@ jobs:
           echo %VULKAN_VERSION%
           echo %VULKAN_SDK%
           dir %VULKAN_SDK%
-
-      - name: Check Installation
-        shell: bash
-        run: $VULKAN_SDK/bin/vulkaninfoSDK
+          %VULKAN_SDK%/bin/vulkaninfoSDK
