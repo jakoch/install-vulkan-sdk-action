@@ -1,9 +1,7 @@
 import * as core from '@actions/core'
 import * as http from './http'
-import * as io from '@actions/io'
-import * as path from 'path'
 import * as platform from './platform'
-import * as tc from '@actions/tool-cache'
+import * as tc from '@actions/tool-cache' // https://github.com/actions/toolkit/tree/main/packages/tool-cache
 
 // Returns a download object with version and url
 // The url is already checked, if available (HTTP 200).
@@ -12,8 +10,9 @@ export async function get_url_vulkan_sdk(version: string): Promise<string> {
 
   // for download urls see https://vulkan.lunarg.com/sdk/home
 
-  // Latest Version:
-  // Windows: https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-sdk.exe
+  // Windows:
+  // Latest Version: https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-sdk.exe
+  // Versionized:    https://sdk.lunarg.com/sdk/download/1.3.216.0/windows/VulkanSDK-1.3.216.0-Installer.exe
 
   const DOWNLOAD_BASE_URL = `https://sdk.lunarg.com/sdk/download/${version}/${platformName}`
 
@@ -36,28 +35,34 @@ export async function get_url_vulkan_sdk(version: string): Promise<string> {
 
 // vulkan-runtime-components is a windows specific download shipping "vulkan-1.dll" for x86 and x64.
 export async function get_url_vulkan_runtime(version: string): Promise<string> {
+  // Windows:
+  // Latest Version:  https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-runtime-components.zip
+  // Versionized:     https://sdk.lunarg.com/sdk/download/1.3.216.0/windows/VulkanRT-1.3.216.0-Components.zip
   const VULKAN_RUNTIME_URL = `https://sdk.lunarg.com/sdk/download/${version}/windows/vulkan-runtime-components.zip`
   is_downloadable('VULKAN_RUNTIME', version, VULKAN_RUNTIME_URL)
   return VULKAN_RUNTIME_URL
 }
 
 async function is_downloadable(name: string, version: string, url: string) {
-  // test, if URL is downloadable
-  const statusCode = (await http.client.head(url)).message.statusCode
-  //if (statusCode !== 200) {
-  if (statusCode !== undefined && statusCode >= 400) {
-    const errorMessage = `❌ ${name} was not found for version: ${version} using URL: ${url}`
-    core.setFailed(errorMessage)
-    throw new Error(errorMessage)
+  try {
+    const HttpClientResponse = await http.client.head(url)
+    const statusCode = HttpClientResponse.message.statusCode
+    if (statusCode !== undefined && statusCode >= 400) {
+      throw new Error(`❌ ${name} version not found: ${version} using URL: ${url}`)
+    }
+    core.info(`✔️ The requested ${name} version was found: ${version}`)
+  } catch (error) {
+    if (error instanceof Error) {
+      core.setFailed(error.message)
+    }
   }
-  core.info(`✔️ The requested ${name} version was found: ${version}`)
 }
 
 export async function download_vulkan_sdk(version: string): Promise<string> {
   const url = await get_url_vulkan_sdk(version)
   core.info(`🔽 Downloading Vulkan SDK ${version}`)
   const sdk_path = await tc.downloadTool(url)
-  core.info(`✔️ Downloaded successful!`)
+  core.info(`✔️ Download completed successfully!`)
   core.info(`Path to installer file: ${sdk_path}`)
   return sdk_path
 }
@@ -66,7 +71,7 @@ export async function download_vulkan_runtime(version: string): Promise<string> 
   const url = await get_url_vulkan_runtime(version)
   core.info(`🔽 Downloading Vulkan Runtime ${version}`)
   const runtime_path = await tc.downloadTool(url)
-  core.info(`✔️ Downloaded successful!`)
+  core.info(`✔️ download completed successfully!`)
   core.info(`Path to runtime file: ${runtime_path}`)
   return runtime_path
 }

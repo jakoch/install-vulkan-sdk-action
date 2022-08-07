@@ -12,7 +12,7 @@ import {env} from 'process'
 env.RUNNER_TOOL_CACHE = path.join(__dirname, '../tmp/runner_tools')
 env.RUNNER_TEMP = path.join(__dirname, '../tmp/runner_tmpdir')
 
-jest.setTimeout(20000) // 20 second timeout
+jest.setTimeout(60000) // 60 second timeout
 
 describe('inputs', () => {
   /*test('GetInputs', async () => {
@@ -77,49 +77,49 @@ describe('version', () => {
   })
 })
 
-/*describe('download', () => {
+describe('download', () => {
   // remove the cache and temp
   beforeAll(async () => {
     await io.rmRF(<string>env.RUNNER_TOOL_CACHE)
     await io.rmRF(<string>env.RUNNER_TEMP)
   })
 
-  /*it('Gets the download URL of the latest version.', async () => {
+  it('Gets the download URL of the latest version.', async () => {
     const input_version = 'latest'
-    const version = await version_getter.determine_version_to_download(input_version)
+    const version = await version_getter.resolve_version(input_version)
     const latestVersion = await downloader.get_url_vulkan_sdk(version)
     expect(latestVersion).not.toBeNull
-  })*/
+  })
 
-/*it('Gives an error, when trying to install an invalid version number.', () => {
+  /*it('Gives an error, when trying to install an invalid version number.', () => {
     expect.assertions(1)
     return downloader.download_vulkan_sdk('0.0.0').catch(e => {
       expect(<Error>e.message).toContain('version not found')
     })
   })*/
 
-/*it('Downloads to default path, when using a valid version number.', () => {
+  /*it('Downloads to default path, when using a valid version number.', () => {
     return downloader.download_vulkan_sdk('1.2.189.0').then(data => {
       expect(data).not.toEqual('')
-    })*
-  })
-})*/
+    })
+  })*/
+})
 
-/*describe('installer', () => {
-  it('Installs SDK into "../third-party/vulkan-sdk" folder, when using a valid version number.', async () => {
+describe('installer', () => {
+  /*it('Installs SDK into "../third-party/vulkan-sdk" folder, when using a valid version number.', async () => {
     const version = '1.2.189.0'
     const sdk_download_path = await downloader.download_vulkan_sdk(version)
 
+    // one level up from __test__
     const installation_folder = '/../third-party/vulkan-sdk'
     const sdk_install_path = path.join(__dirname, installation_folder)
 
     return installer.install_vulkan_sdk(sdk_download_path, sdk_install_path, version).then(data => {
       expect(data).not.toEqual('')
     })
-  }, 5000 * 10)
+  })*/
 
   it('Allows to install optional components', async () => {
     const input_optional_components = 'com.lunarg.vulkan.32bit, com.lunarg.vulkan.debug32'
   })
 })
-*/
