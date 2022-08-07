@@ -83,14 +83,16 @@ export async function getInputOptionalComponents(optional_components: string): P
   const invalid_input_components = input_components.filter(
     item => optional_components_allowlist.includes(item) === false
   )
-  core.info(`Please remove the following invalid optional_components: ${invalid_input_components}`)
+  if (invalid_input_components.length > 0) {
+    core.info(`❌ Please remove the following invalid optional_components: ${invalid_input_components}`)
+  }
 
   const valid_input_components = input_components.filter(item => optional_components_allowlist.includes(item) === true)
 
   if (valid_input_components.length == 0) {
-    core.info(`Installing Optional Components: NONE`)
+    core.info(`❌ Installing Optional Components: NONE`)
   } else {
-    core.info(`Installing Optional Components: ${valid_input_components}`)
+    core.info(`✔️ Installing Optional Components: ${valid_input_components}`)
   }
 
   return valid_input_components
