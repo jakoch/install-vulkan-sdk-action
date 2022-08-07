@@ -58,15 +58,13 @@ jobs:
           # should print list of valid versions
           #version: 1.2.189.1
 
-      - run: echo vulkan-version=${{ steps.install-vulkan-sdk-action.outputs.vulkan-version }}
-
       - name: Show Env Vars and SDK folder
         if: contains(matrix.config.OS, 'ubuntu')
         run: |
           echo $PATH
           echo $VULKAN_VERSION
           echo $VULKAN_SDK
-          ls -ahR $VULKAN_SDK
+          ls $VULKAN_SDK
 
       - name: Show Env Vars and SDK folder
         if: contains(matrix.config.OS, 'windows')
@@ -74,4 +72,4 @@ jobs:
           echo %PATH%
           echo %VULKAN_VERSION%
           echo %VULKAN_SDK%
-          dir /s /b /o:gn %VULKAN_SDK%
+          dir %VULKAN_SDK%
