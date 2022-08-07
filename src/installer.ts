@@ -31,7 +31,8 @@ export async function install_vulkan_sdk(sdk_path: string, destination: string, 
       destination,
       '--accept-licenses',
       '--default-answer',
-      '--confirm-command install'
+      '--confirm-command',
+      'install'
     ])
     if (exitCode !== 0) {
       core.setFailed('Failed to run ${sdk_installer_filepath}.')
