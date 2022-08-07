@@ -60,8 +60,18 @@ jobs:
 
       - run: echo vulkan-version=${{ steps.install-vulkan-sdk-action.outputs.vulkan-version }}
 
-      - run: echo $PATH
+      - name: Show Env Vars and SDK folder
+        if: contains(matrix.config.OS, 'ubuntu')
+        run: |
+          echo $PATH
+          echo $VULKAN_VERSION
+          echo $VULKAN_SDK
+          ls $VULKAN_SDK/x64
 
-      - run: echo $VULKAN_VERSION
-
-      - run: echo $VULKAN_SDK
+      - name: Show Env Vars and SDK folder
+        if: contains(matrix.config.OS, 'windows')
+        run: |
+          echo %PATH%
+          echo %VULKAN_VERSION%
+          echo %VULKAN_SDK%
+          dir %VULKAN_SDK%/x64
