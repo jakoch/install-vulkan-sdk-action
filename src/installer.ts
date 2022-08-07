@@ -11,6 +11,8 @@ export async function install_vulkan_sdk(
 ): Promise<string> {
   let install_path = ''
 
+  core.info(`📦 Extracting Vulkan SDK...Filename: ${sdk_installer_filepath}`)
+
   if (platform.IS_MAC) {
     // TODO
   }
@@ -50,9 +52,20 @@ export async function install_vulkan_runtime(runtime_archive_filepath: string, d
   return install_path
 }
 
-async function extract_archive(archive: string, destination: string): Promise<string> {
-  const extract = archive.endsWith('.zip') ? tc.extractZip : tc.extractTar
-  return await extract(archive, destination)
+async function extract_archive(file: string, destination: string): Promise<string> {
+  const extract = tc.extractTar
+  if (process.platform === 'win32') {
+    if (file.endsWith('.zip')) {
+      const extract = tc.extractZip
+    } else if (file.endsWith('.7z')) {
+      const extract = tc.extract7z
+    }
+  } else if (process.platform === 'darwin') {
+    const extract = tc.extractXar
+  } else {
+    const extract = tc.extractTar
+  }
+  return await extract(file, destination)
 }
 
 async function verify_installation_of_sdk(sdk_path?: string): Promise<number> {

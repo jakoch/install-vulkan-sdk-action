@@ -51,18 +51,20 @@ async function getInputDestination(destination: string): Promise<string> {
   // if location wasn't specified, return default install location for platform
   if (!destination || destination === '') {
     if (platform.IS_WINDOWS) {
-      return 'C:\\VulkanSDK'
+      destination = 'C:\\VulkanSDK'
     }
     // The .tar.gz file now simply extracts the SDK into a directory of the form 1.x.yy.z.
     // The official docs install into the "~" ($HOME) folder.
     if (platform.IS_LINUX) {
-      return `${platform.HOME_DIR}/vulkan-sdk`
+      destination = `${platform.HOME_DIR}/vulkan-sdk`
     }
     // The macOS SDK is intended to be installed anywhere the user can place files such as the user's $HOME directory.
     if (platform.IS_MAC) {
-      return `${platform.HOME_DIR}/vulkan-sdk`
+      destination = `${platform.HOME_DIR}/vulkan-sdk`
     }
   }
+
+  core.info(`Destination: ${destination}`)
 
   return destination
 }
