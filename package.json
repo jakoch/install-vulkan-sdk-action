@@ -47,7 +47,7 @@
     "prettier": "2.8.7",
     "jest": "^28",
     "ts-jest": "^28",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.4"
   },
   "repository": {
     "type": "git",
