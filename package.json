@@ -35,7 +35,7 @@
     "@actions/tool-cache": "^2.0.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.0.4",
     "@github/local-action": "^3.2.0",
     "@types/jest": "^30",
     "@types/node": "^24.0",
