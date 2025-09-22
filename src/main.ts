@@ -22,10 +22,9 @@ import * as versionsVulkan from './versions_vulkan'
  * E.g. "cache-linux-x64-vulkan-sdk-1.3.250.1-hash".
  *
  * @param {string} version - The Vulkan SDK version.
- * @param {string} path - The Vulkan SDK installation path.
  * @return { cachePrimaryKey: string; cacheRestoreKeys: string[]; }
  */
-export function getCacheKeys(version: string, path: string): { cachePrimaryKey: string; cacheRestoreKeys: string[] } {
+export function getCacheKeys(version: string): { cachePrimaryKey: string; cacheRestoreKeys: string[] } {
   // Note: getPlatform() is used to get "windows", instead of OS_PLATFORM value "win32"
   const cachePrimaryKey = `cache-${platform.getPlatform()}-${platform.OS_ARCH}-vulkan-sdk-${version}`
   const cacheRestoreKey1 = `cache-${platform.getPlatform()}-${platform.OS_ARCH}-vulkan-sdk-`
@@ -54,11 +53,11 @@ async function getVulkanSdk(
 ): Promise<string> {
   let installPath: string
 
-  const { cachePrimaryKey, cacheRestoreKeys } = await getCacheKeys(version, destination)
+  const { cachePrimaryKey, cacheRestoreKeys } = await getCacheKeys(version)
 
   // restore from cache
   if (useCache) {
-    let cacheHit = undefined
+    let cacheHit: string | undefined
     if (platform.IS_WINDOWS || platform.IS_WINDOWS_ARM) {
       const versionizedDestinationPath = path.normalize(`${destination}/${version}`)
       cacheHit = await cache.restoreCache([versionizedDestinationPath], cachePrimaryKey, cacheRestoreKeys)
@@ -96,7 +95,7 @@ async function getVulkanSdk(
     // The Vulkan Runtime is installed a part of the SDK installer, but we reposition it to the runtime folder.
     // From version 1.4.313.1 onwards, the runtime is included in the SDK installer.
     if (version >= '1.4.313.1') {
-      await installerVulkan.installVulkanRuntimeFromSdk(installPath, version)
+      await installerVulkan.installVulkanRuntimeFromSdk(installPath)
     }
   }
 
@@ -186,7 +185,7 @@ export async function run(): Promise<void> {
 
     if ((platform.IS_WINDOWS || platform.IS_WINDOWS_ARM) && inputs.installRuntime) {
       const runtimePath = path.normalize(`${installPath}/runtime`)
-      if (installerVulkan.verifyInstallationOfRuntime(runtimePath, version)) {
+      if (installerVulkan.verifyInstallationOfRuntime(runtimePath)) {
         core.info(`✔️ [INFO] Path to Vulkan Runtime: ${runtimePath}`)
       } else {
         core.warning(`Could not find Vulkan Runtime in ${runtimePath}`)

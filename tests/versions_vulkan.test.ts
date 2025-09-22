@@ -147,6 +147,43 @@ describe('versions_vulkan', () => {
       expect(result).toBe('1.4.304.0')
     })
 
+    it('should call core.info when latest version is resolved', async () => {
+      const mockLatestVersions = {
+        linux: '1.4.304.0',
+        mac: '1.4.304.0',
+        warm: '1.4.304.0',
+        windows: '1.4.304.0'
+      }
+      Object.defineProperty(platform, 'IS_LINUX', { value: true })
+      ;(http.client.getJson as jest.Mock).mockResolvedValue({ result: mockLatestVersions })
+
+      const infoSpy = jest.spyOn(core, 'info').mockImplementation(() => undefined)
+      const result = await resolveVersion('latest')
+      expect(result).toBe('1.4.304.0')
+      expect(infoSpy).toHaveBeenCalledWith('Latest Version: 1.4.304.0')
+      infoSpy.mockRestore()
+    })
+
+    it('should handle null latest version result without failing', async () => {
+      // Mock the module-level getLatestVersions to return null so resolveVersion
+      // receives latestVersion === null without causing getLatestVersions to throw.
+      const versionsModule = require('../src/versions_vulkan')
+      jest.spyOn(versionsModule, 'getLatestVersions').mockResolvedValue(null)
+
+      Object.defineProperty(platform, 'IS_LINUX', { value: true })
+      const infoSpy = jest.spyOn(core, 'info').mockImplementation(() => undefined)
+      const setFailedSpy = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
+
+      const result = await resolveVersion('latest')
+      expect(result).toBe('latest')
+      expect(infoSpy).not.toHaveBeenCalled()
+      expect(setFailedSpy).not.toHaveBeenCalled()
+
+      infoSpy.mockRestore()
+      setFailedSpy.mockRestore()
+      ;(versionsModule.getLatestVersions as jest.Mock).mockRestore()
+    })
+
     it('should return the passed version if it is not "latest"', async () => {
       const result = await resolveVersion('1.3.296.0')
       expect(result).toBe('1.3.296.0')

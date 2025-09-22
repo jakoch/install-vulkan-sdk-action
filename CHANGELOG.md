@@ -11,7 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
-## [1.2.5] - 2025-12-06
+## [1.2.6] - 2025-09-22
+
+## Fixed
+- Updated `getCacheKeys` function to remove the installation path parameter.
+- Modified `getVulkanSdk` to align with the new `getCacheKeys` signature.
+- Adjusted Vulkan runtime installation calls to match updated parameters.
+- Ensured proper handling of latest version retrieval in `getLatestVersionsJson`.
+- Improved error handling in `getLowerVersion` to return a rejected promise for empty version lists.
+- Added tests for unsupported platforms in the `extract` function.
+- Added more tests
+
+## [1.2.5] - 2025-06-12
 
 ### Fixed
 
@@ -22,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This is done to ensure backwards compatibility with CI steps, which copy files from this location.
 - fixed verifyInstallationOfRuntime() to detect the runtime files correctly
 
-## [1.2.4] - 2025-11-06
+## [1.2.4] - 2025-06-11
 
 ### Fixed
 

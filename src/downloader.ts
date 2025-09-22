@@ -115,11 +115,11 @@ export async function getUrlVulkanRuntime(version: string): Promise<string> {
       let vulkanRuntimeUrl = ''
       if (platformName === 'windows') {
         // https://sdk.lunarg.com/sdk/download/1.3.250.1/windows/VulkanRT-1.3.250.1-Components.zip
-        vulkanRuntimeUrl = `https://sdk.lunarg.com/sdk/download/${currentVersion}/${platformName}/VulkanRT-${currentVersion}-Components.zip`
+        vulkanRuntimeUrl = `https://sdk.lunarg.com/sdk/download/${currentVersion}/${platformName}/vulkan-runtime-components.zip`
       }
       if (platformName === 'warm') {
         // https://sdk.lunarg.com/sdk/download/1.4.309.0/warm/VulkanRT-ARM64-1.4.309.0-Components.zip
-        vulkanRuntimeUrl = `https://sdk.lunarg.com/sdk/download/${currentVersion}/${platformName}/VulkanRT-ARM64-${currentVersion}-Components.zip`
+        vulkanRuntimeUrl = `https://sdk.lunarg.com/sdk/download/${currentVersion}/${platformName}/vulkan-runtime-components.zip`
       }
       try {
         // isDownloadable throws, if the download is not available

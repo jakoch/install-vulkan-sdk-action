@@ -68,6 +68,8 @@ export async function installVulkanSdkLinux(
   destination: string,
   optionalComponents: string[]
 ): Promise<string> {
+  optionalComponents = [] // no optional components on linux
+
   const installPath = await archive.extract(sdkPath, destination)
 
   return installPath
@@ -345,10 +347,9 @@ export async function installVulkanRuntime(runtimePath: string, destination: str
  *
  * @export
  * @param {string} destination
- * @param {string} version
  * @return {*}  {string} - The installation path of the Vulkan Runtime.
  */
-export function installVulkanRuntimeFromSdk(destination: string, version: string): string {
+export function installVulkanRuntimeFromSdk(destination: string): string {
   core.info(`📦 Placing Vulkan Runtime into the SDK folder...`)
 
   // origin
@@ -517,10 +518,9 @@ export function runVulkanInfo(vulkanInfoPath: string): void {
  *
  * @export
  * @param {string} sdkRuntimePath - Path to the runtime folder, e.g. "C:\VulkanSDK\1.3.250.1\runtime".
- * @param {string} version - The version of the Vulkan SDK.
  * @return {*}  {boolean}
  */
-export function verifyInstallationOfRuntime(sdkRuntimePath: string, version: string): boolean {
+export function verifyInstallationOfRuntime(sdkRuntimePath: string): boolean {
   if (!(platform.IS_WINDOWS || platform.IS_WINDOWS_ARM)) return false
   const basePath = path.normalize(`${sdkRuntimePath}/x64`)
   const requiredFiles = ['vulkan-1.dll', 'vulkaninfo.exe']

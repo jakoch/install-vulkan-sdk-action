@@ -1,6 +1,6 @@
 import * as http from '../src/http'
 import * as core from '@actions/core'
-import { getLatestRelease, getLatestVersion, GithubRelease } from '../src/github'
+import { getLatestRelease, getLatestVersion, type GithubRelease } from '../src/github'
 
 jest.mock('../src/http')
 jest.mock('@actions/core')

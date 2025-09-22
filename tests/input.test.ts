@@ -58,6 +58,13 @@ describe('getInputs', () => {
       lavapipeDestination: `${platform.HOME_DIR}/lavapipe`
     })
   })
+
+  it('should handle optional components with valid and invalid entries', () => {
+    const mixed = 'a,b,com.lunarg.vulkan.x64,com.lunarg.vulkan.debug'
+    const result = (require('../src/inputs') as typeof import('../src/inputs')).getInputVulkanOptionalComponents(mixed)
+
+    expect(result).toEqual(['com.lunarg.vulkan.x64', 'com.lunarg.vulkan.debug'])
+  })
 })
 
 describe('validateVersion', () => {
@@ -75,6 +82,25 @@ describe('validateVersion', () => {
 
   it('should return false for an empty version string', () => {
     expect(inputs.validateVersion('')).toBe(false)
+  })
+})
+
+describe('getInputVulkanVersion', () => {
+  afterEach(() => {
+    jest.restoreAllMocks()
+    jest.clearAllMocks()
+  })
+
+  it('should throw an error for invalid/undefined version and include available versions', async () => {
+    jest.resetModules()
+    const versionsVulkan = require('../src/versions_vulkan')
+    jest.spyOn(versionsVulkan, 'getAvailableVersions').mockResolvedValue({ versions: ['1.2.3.4'] })
+
+    const inputs = require('../src/inputs')
+
+    await expect(inputs.getInputVulkanVersion(undefined as unknown as string)).rejects.toThrow(
+      /Invalid format of "vulkan_version:/
+    )
   })
 })
 
@@ -161,5 +187,51 @@ describe('getInputDestination', () => {
       const expected = path.normalize('/home/test/vulkan-sdk')
       expect(inputs.getInputVulkanDestination('')).toEqual(expected)
     })
+  })
+
+  it('should return Windows ARM default when platform.IS_WINDOWS_ARM is true', () => {
+    jest.resetModules()
+    jest.doMock('../src/platform', () => ({ IS_WINDOWS_ARM: true, HOME_DIR: 'C:\\Users\\Test', IS_WINDOWS: false }))
+    const inputs = require('../src/inputs')
+    const expected = path.normalize('C:\\VulkanSDK\\')
+    expect(inputs.getInputVulkanDestination('')).toEqual(expected)
+  })
+
+  it('should return Linux ARM default when platform.IS_LINUX_ARM is true', () => {
+    jest.resetModules()
+    jest.doMock('../src/platform', () => ({ IS_LINUX_ARM: true, HOME_DIR: '/home/test', IS_LINUX: false }))
+    const inputs = require('../src/inputs')
+    const expected = path.normalize('/home/test/vulkan-sdk')
+    expect(inputs.getInputVulkanDestination('')).toEqual(expected)
+  })
+
+  it('getInputs should return default swiftshader and lavapipe destinations when empty', async () => {
+    jest.resetModules()
+    jest.clearAllMocks()
+
+    // Mock platform to linux
+    jest.doMock('../src/platform', () => ({ IS_LINUX: true, HOME_DIR: '/home/test', IS_WINDOWS: false, IS_MAC: false }))
+    const coreMock = require('@actions/core')
+    coreMock.getInput = jest.fn().mockImplementation((name: string) => {
+      const map: Record<string, string> = {
+        vulkan_version: '1.3.261.1',
+        destination: '',
+        install_runtime: 'false',
+        cache: 'false',
+        optional_components: '',
+        stripdown: 'false',
+        install_swiftshader: 'false',
+        swiftshader_destination: '',
+        install_Lavapipe: 'false',
+        lavapipe_destination: ''
+      }
+      return map[name] || ''
+    })
+
+    const inputsModule = require('../src/inputs')
+    const result = await inputsModule.getInputs()
+
+    expect(result.swiftshaderDestination).toBe('/home/test/swiftshader')
+    expect(result.lavapipeDestination).toBe('/home/test/lavapipe')
   })
 })

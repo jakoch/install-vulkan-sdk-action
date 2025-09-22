@@ -53,7 +53,7 @@ export async function getLatestVersionsJson(): Promise<LatestVersions> {
     })()
   }
 
-  return latestVersionsPromise
+  return await latestVersionsPromise
 }
 
 // only for testing: reset cache

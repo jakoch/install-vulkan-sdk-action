@@ -101,4 +101,13 @@ describe('extract function', () => {
     Object.defineProperty(platform, 'IS_MAC', { value: true })
     await expect(extract('test.unknown', '/destination')).rejects.toThrow('The file type is unsupported: test.unknown')
   })
+
+  it('throws an error for unsupported platforms', async () => {
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: false })
+    Object.defineProperty(platform, 'IS_WINDOWS_ARM', { value: false })
+    Object.defineProperty(platform, 'IS_MAC', { value: false })
+    Object.defineProperty(platform, 'IS_LINUX', { value: false })
+    Object.defineProperty(platform, 'IS_LINUX_ARM', { value: false })
+    await expect(extract('test.unknown', '/destination')).rejects.toThrow('Unsupported platform:')
+  })
 })

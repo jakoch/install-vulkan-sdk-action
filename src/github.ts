@@ -9,16 +9,16 @@ import * as http from './http'
 export interface GithubReleaseAssets {
   name: string
   url: string
-  // biome-ignore lint/style/useNamingConvention: <explanation>
+  // biome-ignore lint: style/useNamingConvention
   browser_download_url: string
 }
 
 export interface GithubRelease {
-  // biome-ignore lint/style/useNamingConvention: <explanation>
+  // biome-ignore lint: style/useNamingConvention
   tag_name: string
-  // biome-ignore lint/style/useNamingConvention: <explanation>
+  // biome-ignore lint: style/useNamingConvention
   assets_url: string
-  // biome-ignore lint/style/useNamingConvention: <explanation>
+  // biome-ignore lint: style/useNamingConvention
   upload_url: string
   assets: GithubReleaseAssets[]
 }
@@ -53,9 +53,7 @@ export const getLatestRelease = async (owner: string, repo: string): Promise<Git
 export const getLatestVersion = async (owner: string, repo: string): Promise<string | null> => {
   try {
     const response = await getLatestRelease(owner, repo)
-    // biome-ignore lint/style/useNamingConvention: <explanation>
     if (response && response.tag_name) {
-      // biome-ignore lint/style/useNamingConvention: <explanation>
       return response.tag_name
     } else {
       return null // Unable to retrieve the version.

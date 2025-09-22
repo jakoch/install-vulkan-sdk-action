@@ -58,4 +58,19 @@ describe('http', () => {
 
     await expect(isDownloadable('test-package', '1.0.0', 'https://example.com/test')).rejects.toThrow('Network error')
   })
+
+  it('should handle undefined status code', async () => {
+    // Mock response with undefined statusCode
+    mockHead.mockResolvedValue({
+      message: {
+        statusCode: undefined
+      }
+    } as httpm.HttpClientResponse)
+
+    await isDownloadable('test-package', '1.0.0', 'https://example.com/test')
+
+    expect(mockHead).toHaveBeenCalledWith('https://example.com/test')
+    // No core.info called since statusCode is undefined
+    expect(core.info).not.toHaveBeenCalled()
+  })
 })

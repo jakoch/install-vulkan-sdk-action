@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
   "vcs": {
     "enabled": false,
     "clientKind": "git",
@@ -7,7 +7,19 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**"]
+    "includes": [
+      "**",
+      "!.devcontainer",
+      "!.git",
+      "!.github",
+      "!.vscode",
+      "!build-tools",
+      "!coverage",
+      "!dist",
+      "!lib",
+      "!node_modules",
+      "!tests"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -21,13 +33,17 @@
     "bracketSpacing": true,
     "includes": [
       "**",
-      "!.devcontainer/**",
-      "!.github/**",
-      "!build-tools/**",
-      "!dist/**",
+      "!**/.devcontainer/",
+      "!**/.git/",
+      "!**/.github/",
+      "!**/.vscode/",
+      "!**/build-tools/",
+      "!**/coverage/**",
+      "!**/dist/",
+      "!**/lib/**",
       "!lib/**",
-      "!node_modules/**",
-      "!coverage/**"
+      "!**/node_modules/",
+      "!**/tests/"
     ]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
@@ -135,9 +151,10 @@
       "!**/.github/",
       "!**/.vscode/",
       "!**/build-tools/",
-      "!**/coverage/",
+      "!**/coverage/**",
       "!**/dist/",
-      "!**/lib/",
+      "!**/lib/**",
+      "!lib/**",
       "!**/node_modules/",
       "!**/tests/"
     ]

@@ -14,8 +14,9 @@
     "lint:fix": "npx @biomejs/biome lint --write",
     "local:run": "npx @github/local-action run . ./src/main.ts env.local",
     "package": "ncc build --source-map --minify",
-    "test": "jest --no-cache --verbose --detectOpenHandles --runInBand",
+    "test": "jest --verbose --detectOpenHandles --runInBand",
     "test:cov": "jest --verbose --coverage",
+    "test:nocache": "jest --verbose --detectOpenHandles --runInBand --no-cache",
     "npm:audit": "npm audit --audit-level=high fix",
     "npm:outdated": "npm outdated",
     "npm:clean_install": "npm clean-install --no-audit --strict-peer-deps",
@@ -35,13 +36,13 @@
   "main": "lib/main.js",
   "dependencies": {
     "@actions/cache": "^4",
-    "@actions/core": "^1.11.1",
-    "@actions/http-client": "^2.1.1",
-    "@actions/io": "^1.1.3",
-    "@actions/tool-cache": "^2.0.1"
+    "@actions/core": "^1",
+    "@actions/http-client": "^2",
+    "@actions/io": "^1",
+    "@actions/tool-cache": "^2"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.2.0",
+    "@biomejs/biome": "^2",
     "@github/local-action": "^6.0.0",
     "@types/jest": "^30",
     "@types/node": "^24.5",

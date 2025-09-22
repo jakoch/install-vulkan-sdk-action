@@ -45,10 +45,7 @@
       "terminal.integrated.defaultProfile.linux": "zsh",
       "terminal.integrated.shell.linux": "/bin/zsh",
       // tell VSCode that you want the shell to be a login, interactive shell
-      "terminal.integrated.shellArgs.linux": [
-        "-l",
-        "-i"
-      ]
+      "terminal.integrated.shellArgs.linux": ["-l", "-i"]
     }
   }
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
