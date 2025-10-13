@@ -96,7 +96,7 @@ describe('installer_vulkan', () => {
     ;(archive.extract as jest.Mock) = jest.fn().mockImplementation((_url, dest) => Promise.resolve(dest))
 
     const runtimeDestBase = path.join(tmpRoot, 'VulkanSDK')
-    const version = '1.3.250.1'
+    const version = '1.4.328.1'
     // create the tempInstallPath that installVulkanRuntime expects
     fs.mkdirSync(tempInstallPath, { recursive: true })
 

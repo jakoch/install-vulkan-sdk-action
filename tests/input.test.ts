@@ -24,7 +24,7 @@ describe('getInputs', () => {
     ;(core.getInput as jest.Mock).mockImplementation((name: string) => {
       const mockInputs: Record<string, string> = {
         // vulkan
-        vulkan_version: '1.3.261.1',
+        vulkan_version: '1.4.328.1',
         destination: '/some/path',
         install_runtime: 'true',
         cache: 'false',
@@ -44,7 +44,7 @@ describe('getInputs', () => {
     // Call getInputs and check the result
     await expect(getInputs()).resolves.toEqual({
       // vulkan
-      version: '1.3.261.1',
+      version: '1.4.328.1',
       destination: '/some/path',
       installRuntime: true,
       useCache: false,
@@ -214,7 +214,7 @@ describe('getInputDestination', () => {
     const coreMock = require('@actions/core')
     coreMock.getInput = jest.fn().mockImplementation((name: string) => {
       const map: Record<string, string> = {
-        vulkan_version: '1.3.261.1',
+        vulkan_version: '1.4.328.1',
         destination: '',
         install_runtime: 'false',
         cache: 'false',

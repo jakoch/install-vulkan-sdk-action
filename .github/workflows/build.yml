@@ -162,25 +162,15 @@ jobs:
       #    # should print list of valid versions
       #    vulkan_version: 1.2.3.4
 
-      - name: Use own action - from 1.3.261.1 archive is tar.xz on linux
+      - name: Use own action - from 1.4.328.1 archive is tar.xz on linux
         uses: ./
         with:
           # Vulkan SDK version to download. Default: latest version.
-          vulkan_version:  1.3.261.1
+          vulkan_version:  1.4.328.1
           optional_components: com.lunarg.vulkan.vma, com.lunarg.vulkan.volk
           install_runtime: true
           cache: false
           stripdown: true
-
-      #- name: Use own action - up to 1.3.250.1 archive is tar.gz on linux
-      #  uses: ./
-      #  with:
-      #    # Vulkan SDK version to download. Default: latest version.
-      #    vulkan_version: 1.3.250.1
-      #    optional_components: com.lunarg.vulkan.vma, com.lunarg.vulkan.volk
-      #    install_runtime: true
-      #    cache: true
-      #    stripdown: true
 
       - name: Show Env Vars and SDK folder (Linux)
         if: contains(matrix.config.OS, 'ubuntu')

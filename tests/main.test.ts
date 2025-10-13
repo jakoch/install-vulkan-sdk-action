@@ -71,7 +71,7 @@ describe('version', () => {
   afterEach(() => jest.resetAllMocks())
 
   it('Fetches the list of latest versions.', async () => {
-    const latestVersionResponseData = { linux: '1.3.250.1', mac: '1.3.250.1', windows: '1.3.250.1' }
+    const latestVersionResponseData = { linux: '1.4.328.1', mac: '1.4.328.1', windows: '1.4.328.1' }
     HttpClient.prototype.getJson = jest
       .fn()
       .mockResolvedValue({ statusCode: 200, result: { latestVersionResponseData } })

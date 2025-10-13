@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.2.7] - 2025-10-13
+
+## Fixed
+- Updated workflow, because lowest available version is 1.3.268.0 (all older version are removed)
+
 ## [1.2.6] - 2025-09-22
 
 ## Fixed
