@@ -169,7 +169,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Section for Reference Links -->
 
-[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.6...HEAD
+[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.7...HEAD
+[1.2.7]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.3...v1.2.4

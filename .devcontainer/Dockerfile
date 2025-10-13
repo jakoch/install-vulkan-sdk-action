@@ -1,4 +1,5 @@
-FROM node:21-bookworm-slim
+#FROM debian:trixie-slim
+FROM node:24-trixie-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -11,8 +12,7 @@ RUN echo "Packages" && \
     git git-lfs \
     jq \
     grep ripgrep \
-    zip unzip xz-utils xzdec \
-    mc && \
+    zip unzip xz-utils xzdec && \
     # Cleanup
     apt-get autoremove -y && \
     apt-get clean autoclean && \
