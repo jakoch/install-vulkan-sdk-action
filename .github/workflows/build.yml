@@ -254,6 +254,27 @@ jobs:
             dir /s C:\Lavapipe
           )
 
+      # Generate vulkaninfo profiles for both rasterizers (lavapipe_profile.json, swiftshader_profile.json).
+      # Register both drivers via ICD (Installable Client Driver) files in the Windows Registry before running vulkaninfoSDK.exe.
+
+      - name: Register Lavapipe Driver and run vulkaninfoSDK
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json" /t REG_DWORD /d 0 /f
+          vulkaninfoSDK.exe -j -o lavapipe_profile.json
+          Get-Content -Raw lavapipe_profile.json
+          reg delete "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json" /f
+
+      - name: Register SwiftShader Driver and run vulkaninfoSDK
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\Swiftshader\vk_swiftshader_icd.json" /t REG_DWORD /d 0 /f
+          vulkaninfoSDK.exe -j -o swiftshader_profile.json
+          Get-Content -Raw swiftshader_profile.json
+          reg delete "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\Swiftshader\vk_swiftshader_icd.json" /f
+
       #- name: Show Env Vars and SDK folder (Linux)
       #  if: contains(matrix.config.OS, 'ubuntu')
       #  run: |
