@@ -168,6 +168,88 @@ This installer enables you to install the latest Vulkan Runtime for development,
 allowing you to test your applications with the most up-to-date runtime and
 bundle it for redistribution when packaging your application.
 
+### What are ICD (Installable Client Drivers)
+
+An ICD is the real Vulkan driver provided by a GPU vendor (or software rasterizer)
+that implements the Vulkan API.
+
+When an application calls Vulkan functions (like vkCreateInstance()),
+those calls go through the Vulkan loader, which then passes them
+to one or more ICDs that are installed on the system.
+
+Each ICD is described by a small JSON file, for example:
+
+```
+C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json
+C:\SwiftShader\vk_swiftshader_icd.json
+```
+
+These JSON files tell the Vulkan loader:
+- the path to the driver file
+- the architecture (x64, arm64)
+- and contain additional metadata, like version or entrypoint
+
+In order to work with a driver, you have to register them in the Windows registry.
+
+#### Typical Driver Loading Flow
+
+When you run something like `vulkaninfoSDK.exe`:
+
+1. The Vulkan loader checks the registry at `HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\Drivers`.
+2. It finds all .json ICD files listed there.
+3. It loads each ICD and queries its capabilities (e.g., from AMD, NVIDIA, Intel, SwiftShader, Lavapipe, etc.).
+4. It reports back all devices and properties in your system.
+
+## About SwiftShader
+
+SwiftShader is a software rasterizer.
+
+You can install it using `install_swiftshader: true`.
+
+The default location for Windows is `C:\Swiftshader` and it contains 3 files:
+
+```
+vk_swiftshader.dll
+vk_swiftshader_icd.json
+vulkan-1.dll
+```
+
+## Registering SwiftShader as a Vulkan Installable Client Driver (ICD)
+
+To register SwiftShader as a Vulkan Installable Client Driver (ICD), you need to add its ICD manifest file to the Windows registry.
+
+You can do this using PowerShell with the following command:
+
+```
+reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\Swiftshader\vk_swiftshader_icd.json" /t REG_DWORD /d 0 /f
+```
+
+Once registered, you can verify that the driver loads correctly and inspect its capabilities using the Vulkan SDK’s vulkaninfo tool:
+
+```
+vulkaninfoSDK.exe -j -o swiftshader_profile.json
+
+Get-Content -Raw swiftshader_profile.json
+```
+
+This command generates a JSON file (`swiftshader_profile.json`) containing detailed information about the
+SwiftShader Vulkan driver, including supported extensions, features, and device properties.
+
+The json file should contain an entry `capabilities.device.properties.VkPhysicalDeviceProperties` with a line similar to:
+`"deviceName": "SwiftShader Device (LLVM 10.0.0)"`.
+
+To confirm that, you can use `jq` to extract the device name:
+
+```
+jq -r '.capabilities.device.properties.VkPhysicalDeviceProperties.deviceName' swiftshader_profile.json
+```
+
+This should output:
+
+```
+SwiftShader Device (LLVM 10.0.0)
+```
+
 ## License
 
 All the content in this repository is licensed under the [MIT License](https://github.com/jakoch/install-vulkan-sdk-action/blob/main/LICENSE).
