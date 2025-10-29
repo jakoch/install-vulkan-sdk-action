@@ -89,7 +89,7 @@ The following inputs can be used as `steps.with` keys:
 | `optional_components`    | String  | Comma-separated list of components to install. | Default: no optional components. | false |
 | `install_runtime`        | bool    | Windows only. Installs the vulkan runtime ('vulkan-1.dll') into a `runtime` folder inside `destination`, if true. Windows: `C:\VulkanSDK\runtime`.    | true | false |
 | `cache`                  | bool    | Cache the Vulkan installation folder.   | true | false |
-| `stripdown`              | bool    | Windows only. Weather to reduce the size of the SDK, before caching. | false | false |
+| `stripdown`              | bool    | Windows only. Whether to reduce the size of the SDK, before caching. | false | false |
 | `install_swiftshader`    | bool    | Windows only. Installs Google's SwiftShader software rasterizer. Default: false. | false | false
 | `swiftshader_destination`| String  | The installation folder for SwiftShader. | Windows: `C:\swiftshader`. Linux/MacOS: `%HOME/swiftshader` | false
 | `install_lavapipe`       | bool    | Windows only. Installs Mesa's Lavapipe software rasterizer. Default: false. | false
@@ -214,7 +214,11 @@ OpenGL ES APIs, ensuring graphics rendering on systems without GPU acceleration.
 
 You can install it using `install_swiftshader: true`.
 
-The default location for Windows is `C:\Swiftshader` and it contains 3 files:
+The install location can be changed using `swiftshader_destination`.
+
+The default location for Windows is `C:\Swiftshader`.
+
+The installation folder will contain 3 files:
 
 ```
 vk_swiftshader.dll
