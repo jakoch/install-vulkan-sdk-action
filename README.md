@@ -19,6 +19,10 @@ A Github Action to install the Vulkan SDK and runtime library. It also supports 
   - [What is the Vulkan SDK?](#what-is-the-vulkan-sdk)
   - [What is the Vulkan SDK for ARM?](#what-is-the-vulkan-sdk-for-arm)
   - [What is the Vulkan Runtime?](#what-is-the-vulkan-runtime)
+  - [What are Installable Client Drivers (ICDs)?](#what-are-installable-client-drivers-icds)
+- [About SwiftShader](#about-swiftshader)
+  - [Installing SwiftShader](#installing-swiftshader)
+  - [Registering SwiftShader as Vulkan Driver](#registering-swiftshader-as-vulkan-driver)
 - [License](#license)
 - [Development Reminder](#development-reminder)
 
@@ -168,7 +172,7 @@ This installer enables you to install the latest Vulkan Runtime for development,
 allowing you to test your applications with the most up-to-date runtime and
 bundle it for redistribution when packaging your application.
 
-### What are ICD (Installable Client Drivers)
+### What are Installable Client Drivers (ICDs)?
 
 An ICD is the real Vulkan driver provided by a GPU vendor (or software rasterizer)
 that implements the Vulkan API.
@@ -202,7 +206,11 @@ When you run something like `vulkaninfoSDK.exe`:
 
 ## About SwiftShader
 
-SwiftShader is a software rasterizer.
+[Swiftshader](https://github.com/google/swiftshader), developed by Google,
+delivers a high-performance CPU-based implementation of the Vulkan and
+OpenGL ES APIs, ensuring graphics rendering on systems without GPU acceleration.
+
+### Installing SwiftShader
 
 You can install it using `install_swiftshader: true`.
 
@@ -214,7 +222,7 @@ vk_swiftshader_icd.json
 vulkan-1.dll
 ```
 
-## Registering SwiftShader as a Vulkan Installable Client Driver (ICD)
+### Registering SwiftShader as Vulkan Driver
 
 To register SwiftShader as a Vulkan Installable Client Driver (ICD), you need to add its ICD manifest file to the Windows registry.
 
