@@ -256,25 +256,56 @@ jobs:
 
       # Generate vulkaninfo profiles for both rasterizers (lavapipe_profile.json, swiftshader_profile.json).
       # Register both drivers via ICD (Installable Client Driver) files in the Windows Registry before running vulkaninfoSDK.exe.
+      # The steps are splitted to easily access the "Output Device Name from Profile" in the CI logs.
 
-      - name: Register Lavapipe Driver and run vulkaninfoSDK
+      - name: (Lavapipe) Register Driver
         if: contains(matrix.config.OS, 'windows')
         shell: pwsh
         run: |
           reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json" /t REG_DWORD /d 0 /f
+
+      - name: (Lavapipe) Run vulkaninfoSDK
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
           vulkaninfoSDK.exe -j -o lavapipe_profile.json
           Get-Content -Raw lavapipe_profile.json
+
+      - name: (Lavapipe) Output Device Name from Profile
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
           jq -r '.capabilities.device.properties.VkPhysicalDeviceProperties.deviceName' lavapipe_profile.json
+
+      - name: (Lavapipe) Unregister Driver
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
           reg delete "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json" /f
 
-      - name: Register SwiftShader Driver and run vulkaninfoSDK
+      - name: (SwiftShader) Register Driver
         if: contains(matrix.config.OS, 'windows')
         shell: pwsh
         run: |
           reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\Swiftshader\vk_swiftshader_icd.json" /t REG_DWORD /d 0 /f
+
+      - name: (SwiftShader) Run vulkaninfoSDK
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
           vulkaninfoSDK.exe -j -o swiftshader_profile.json
           Get-Content -Raw swiftshader_profile.json
+
+      - name: (SwiftShader) Output Device Name from Profile
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
           jq -r '.capabilities.device.properties.VkPhysicalDeviceProperties.deviceName' swiftshader_profile.json
+
+      - name: (SwiftShader) Unregister Driver
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
           reg delete "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\Swiftshader\vk_swiftshader_icd.json" /f
 
       #- name: Show Env Vars and SDK folder (Linux)
