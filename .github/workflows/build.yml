@@ -415,6 +415,8 @@ jobs:
         if: contains(matrix.config.OS, 'windows')
         shell: pwsh
         run: |
+          $vulkanPath = Join-Path $env:VULKAN_SDK $env:VULKAN_VERSION
+          Set-Location "$vulkanPath\runtime\x64"
           jq -r '.capabilities.device.properties.VkPhysicalDeviceProperties.deviceName' lavapipe_profile.json
 
       - name: (Lavapipe) Unregister Driver
