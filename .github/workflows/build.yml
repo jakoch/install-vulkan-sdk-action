@@ -345,9 +345,7 @@ jobs:
 
 # ---------------------------------------------------------------------------------------
 
-    # install Vulkan runtime only = do not install Vulkan SDK
-    # install lavapipe on windows
-    name: Install rasterizers on ${{ matrix.config.OS }}
+    name: Install runtime_only with Lavapipe on ${{ matrix.config.OS }}
     runs-on: ${{ matrix.config.OS }}
 
     strategy:
@@ -371,6 +369,17 @@ jobs:
           # Lavapipe. Default: latest version.
           install_lavapipe: true
 
+      - name: Show Env Vars and SDK folder (Windows)
+        if: contains(matrix.config.OS, 'windows')
+        working-directory: ${{env.VULKAN_SDK}}
+        run: |
+          echo $env:PATH
+          echo $env:VULKAN_VERSION
+          echo $env:VULKAN_SDK
+          Get-ChildItem -File -Recurse
+          $folderSizeMB = (Get-ChildItem -File -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
+          "Folder size: {0:N2} MB" -f $folderSizeMB
+
       - name: List Files
         if: contains(matrix.config.OS, 'windows')
         shell: cmd
@@ -391,6 +400,7 @@ jobs:
 
       - name: (Lavapipe) Run vulkaninfoSDK
         if: contains(matrix.config.OS, 'windows')
+        working-directory: ${{env.VULKAN_SDK}}/${{env.VULKAN_VERSION}}/runtime
         shell: pwsh
         run: |
           vulkaninfoSDK.exe -j -o lavapipe_profile.json
@@ -407,14 +417,3 @@ jobs:
         shell: pwsh
         run: |
           reg delete "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json" /f
-
-      - name: Show Env Vars and SDK folder (Windows)
-        if: contains(matrix.config.OS, 'windows')
-        working-directory: ${{env.VULKAN_SDK}}
-        run: |
-          echo $env:PATH
-          echo $env:VULKAN_VERSION
-          echo $env:VULKAN_SDK
-          Get-ChildItem -File -Recurse
-          $folderSizeMB = (Get-ChildItem -File -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
-          "Folder size: {0:N2} MB" -f $folderSizeMB
