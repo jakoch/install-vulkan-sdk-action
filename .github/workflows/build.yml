@@ -338,3 +338,83 @@ jobs:
       #    echo VK_LAYER_PATH = $VK_LAYER_PATH
       #    echo DYLD_LIBRARY_PATH = $DYLD_LIBRARY_PATH
       #    echo Folder size = `du -hs $VULKAN_SDK`
+
+# ---------------------------------------------------------------------------------------
+
+  test-runtime-only-with-lavapipe:
+
+# ---------------------------------------------------------------------------------------
+
+    # install Vulkan runtime only = do not install Vulkan SDK
+    # install lavapipe on windows
+    name: Install rasterizers on ${{ matrix.config.OS }}
+    runs-on: ${{ matrix.config.OS }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          # https://github.com/actions/runner-images/tree/main/images
+          - { OS: windows-2025 }
+
+    steps:
+
+      - name: 🤘 Checkout Code
+        uses: actions/checkout@v5 # https://github.com/actions/checkout
+
+      - name: Use own action - test latest version
+        uses: ./
+        with:
+          # This will install only the runtime (vulkan-1.dll), not the full SDK.
+          install_runtime_only: true
+          cache: false
+          # Lavapipe. Default: latest version.
+          install_lavapipe: true
+
+      - name: List Files
+        if: contains(matrix.config.OS, 'windows')
+        shell: cmd
+        run: |
+          if exist C:\Lavapipe (
+            dir /s C:\Lavapipe
+          )
+
+      # Generate vulkaninfo profiles for both rasterizers (lavapipe_profile.json, swiftshader_profile.json).
+      # Register both drivers via ICD (Installable Client Driver) files in the Windows Registry before running vulkaninfoSDK.exe.
+      # The steps are splitted to easily access the "Output Device Name from Profile" in the CI logs.
+
+      - name: (Lavapipe) Register Driver
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json" /t REG_DWORD /d 0 /f
+
+      - name: (Lavapipe) Run vulkaninfoSDK
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
+          vulkaninfoSDK.exe -j -o lavapipe_profile.json
+          Get-Content -Raw lavapipe_profile.json
+
+      - name: (Lavapipe) Output Device Name from Profile
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
+          jq -r '.capabilities.device.properties.VkPhysicalDeviceProperties.deviceName' lavapipe_profile.json
+
+      - name: (Lavapipe) Unregister Driver
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
+          reg delete "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json" /f
+
+      - name: Show Env Vars and SDK folder (Windows)
+        if: contains(matrix.config.OS, 'windows')
+        working-directory: ${{env.VULKAN_SDK}}
+        run: |
+          echo $env:PATH
+          echo $env:VULKAN_VERSION
+          echo $env:VULKAN_SDK
+          Get-ChildItem -File -Recurse
+          $folderSizeMB = (Get-ChildItem -File -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
+          "Folder size: {0:N2} MB" -f $folderSizeMB

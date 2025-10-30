@@ -137,7 +137,9 @@ export async function run(): Promise<void> {
       const vulkanRuntimePath = await downloader.downloadVulkanRuntime(version)
       const runtimePath = await installerVulkan.installVulkanRuntime(vulkanRuntimePath, inputs.destination, version)
 
-      // Set VULKAN_VERSION
+      core.exportVariable('VULKAN_SDK', inputs.destination)
+      core.info(`✔️ [ENV] Set env variable VULKAN_SDK -> "${inputs.destination}".`)
+
       core.exportVariable('VULKAN_VERSION', version)
       core.info(`✔️ [ENV] Set env variable VULKAN_VERSION -> "${version}".`)
 
