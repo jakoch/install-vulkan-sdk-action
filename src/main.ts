@@ -129,24 +129,23 @@ export async function run(): Promise<void> {
 
     const version = await versionsVulkan.resolveVersion(inputs.version)
 
-    let runtimePath = ''
-
     /* ----------------------------------------------------------------------
-     * Install only runtime components, no SDK (install_runtime_only)
+     * Install Runtime only (skip installing the SDK)
      * ---------------------------------------------------------------------- */
 
     if ((platform.IS_WINDOWS || platform.IS_WINDOWS_ARM) && inputs.installRuntimeOnly) {
-      if (!(platform.IS_WINDOWS || platform.IS_WINDOWS_ARM)) {
-        core.warning('Vulkan Runtime installation is only supported on Windows.')
+      const vulkanRuntimePath = await downloader.downloadVulkanRuntime(version)
+      const runtimePath = await installerVulkan.installVulkanRuntime(vulkanRuntimePath, inputs.destination, version)
+
+      // Set VULKAN_VERSION
+      core.exportVariable('VULKAN_VERSION', version)
+      core.info(`✔️ [ENV] Set env variable VULKAN_VERSION -> "${version}".`)
+
+      // Verify installation of Vulkan Runtime
+      if (installerVulkan.verifyInstallationOfRuntime(runtimePath)) {
+        core.info(`✔️ [INFO] Path to Vulkan Runtime: ${runtimePath}`)
       } else {
-        const vulkanRuntimePath = await downloader.downloadVulkanRuntime(version)
-
-        // Set runtimePath for later verification
-        runtimePath = await installerVulkan.installVulkanRuntime(vulkanRuntimePath, inputs.destination, version)
-
-        // Set VULKAN_VERSION for runtime-only mode
-        core.exportVariable('VULKAN_VERSION', version)
-        core.info(`✔️ [ENV] Set env variable VULKAN_VERSION -> "${version}".`)
+        core.warning(`Could not find Vulkan Runtime in ${runtimePath}`)
       }
     } else {
       /* ----------------------------------------------------------------------
@@ -207,21 +206,14 @@ export async function run(): Promise<void> {
         core.warning(`Could not find Vulkan SDK in ${installPath}`)
       }
 
-      // Set runtimePath for later verification
+      // Verify installation of Vulkan Runtime
       if ((platform.IS_WINDOWS || platform.IS_WINDOWS_ARM) && inputs.installRuntime) {
-        runtimePath = path.normalize(`${installPath}/runtime`)
-      }
-    }
-
-    /* ----------------------------------------------------------------------
-     * Verify Runtime Installation
-     * ---------------------------------------------------------------------- */
-
-    if ((platform.IS_WINDOWS || platform.IS_WINDOWS_ARM) && inputs.installRuntime) {
-      if (installerVulkan.verifyInstallationOfRuntime(runtimePath)) {
-        core.info(`✔️ [INFO] Path to Vulkan Runtime: ${runtimePath}`)
-      } else {
-        core.warning(`Could not find Vulkan Runtime in ${runtimePath}`)
+        const runtimePath = path.normalize(`${installPath}/runtime`)
+        if (installerVulkan.verifyInstallationOfRuntime(runtimePath)) {
+          core.info(`✔️ [INFO] Path to Vulkan Runtime: ${runtimePath}`)
+        } else {
+          core.warning(`Could not find Vulkan Runtime in ${runtimePath}`)
+        }
       }
     }
 

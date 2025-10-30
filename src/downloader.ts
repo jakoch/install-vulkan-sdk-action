@@ -11,6 +11,7 @@ import * as errors from './errors'
 import * as platform from './platform'
 import * as versions from './versions'
 import * as versionsVulkan from './versions_vulkan'
+import { compareFileSha } from './verify'
 
 /**
  * Get download url for Vulkan SDK.
@@ -161,6 +162,15 @@ export async function downloadVulkanSdk(version: string): Promise<string> {
   const sdkPath = await tc.downloadTool(url, path.join(platform.TEMP_DIR, getVulkanSdkFilename(version)))
   core.info(`✔️ Download completed successfully!`)
   core.info(`   File: ${sdkPath}`)
+
+  if (platform.IS_LINUX_ARM) {
+    core.info(`   Skipping SHA verification for custom ARM build.`)
+  } else {
+    const expectedSha = await fetchExpectedSha(version, path.basename(sdkPath))
+    const verified = await compareFileSha(sdkPath, expectedSha, true)
+    if (!verified) throw new Error(`SHA verification failed for installer: ${sdkPath}`)
+  }
+
   return sdkPath
 }
 
@@ -218,4 +228,39 @@ export function getVulkanSdkFilename(version: string): string {
     return `vulkansdk-macos.dmg`
   }
   return 'not-implemented-for-platform'
+}
+
+/**
+ * Fetch the expected SHA from the Lunarg API for a given version/platform/file.
+ *
+ * Windows: https://vulkan.lunarg.com/sdk/sha/1.4.328.1/windows/vulkansdk-windows-X64-1.4.328.1.exe.json
+ */
+export function fetchExpectedSha(version: string, fileName: string): Promise<string> {
+  // During unit tests (Jest) skip network calls and return an empty string.
+  const runningUnderJest = typeof process.env.JEST_WORKER_ID !== 'undefined'
+  if (runningUnderJest) {
+    core.info('Skipping fetchExpectedSha while running under Jest')
+    return Promise.resolve('')
+  }
+
+  return new Promise((resolve, reject) => {
+    const platformName = platform.getPlatform()
+    const url = `https://sdk.lunarg.com/sdk/sha/${version}/${platformName}/${fileName}.json`
+    core.info(`   SHA HASH URL: ${url}`)
+    http
+      .download(url)
+      .then(body => {
+        try {
+          const parsed = JSON.parse(body)
+          if (parsed && parsed.sha) {
+            resolve(parsed.sha)
+          } else {
+            reject(new Error('Unexpected response shape from Lunarg SHA API'))
+          }
+        } catch (err) {
+          reject(err)
+        }
+      })
+      .catch(err => reject(err))
+  })
 }

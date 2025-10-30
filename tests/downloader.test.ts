@@ -3,7 +3,8 @@ import {
   getUrlVulkanRuntime,
   downloadVulkanSdk,
   downloadVulkanRuntime,
-  getVulkanSdkFilename
+  getVulkanSdkFilename,
+  fetchExpectedSha
 } from '../src/downloader'
 import * as platform from '../src/platform'
 import * as versionsVulkan from '../src/versions_vulkan'
@@ -14,7 +15,8 @@ import * as core from '@actions/core'
 jest.mock('../src/platform')
 jest.mock('../src/versions_vulkan')
 jest.mock('../src/http', () => ({
-  isDownloadable: jest.fn() as jest.Mock
+  isDownloadable: jest.fn() as jest.Mock,
+  download: jest.fn() as jest.Mock
 }))
 jest.mock('@actions/tool-cache')
 jest.mock('@actions/core')
@@ -42,8 +44,10 @@ describe('downloader', () => {
       const url = `https://sdk.lunarg.com/sdk/download/${version}/windows/VulkanSDK-${version}-Installer.exe`
       const expectedPath = `/tmp/VulkanSDK-Installer.exe`
 
-      jest.spyOn(require('../src/downloader'), 'getUrlVulkanRuntime').mockResolvedValue(url)
+      jest.spyOn(require('../src/downloader'), 'getUrlVulkanSdk').mockResolvedValue(url)
       ;(tc.downloadTool as jest.Mock).mockResolvedValueOnce(expectedPath)
+      jest.spyOn(require('../src/downloader'), 'fetchExpectedSha').mockResolvedValue('expected-sha')
+      jest.spyOn(require('../src/verify'), 'compareFileSha').mockResolvedValue(true)
 
       const sdkPath = await downloadVulkanSdk(version)
       expect(sdkPath).toBe(expectedPath)
@@ -297,6 +301,68 @@ describe('downloader', () => {
 
       const filename = getVulkanSdkFilename(version)
       expect(filename).toBe(expectedFilename)
+    })
+  })
+
+  describe('fetchExpectedSha', () => {
+    it('fetchExpectedSha fetches SHA from Lunarg API', async () => {
+      jest.spyOn(platform, 'getPlatform').mockReturnValue('linux')
+      // Mock httpDownload
+      const httpDownloadMock = jest.fn().mockResolvedValue(JSON.stringify({ sha: 'expected-sha' }))
+      require('../src/http').download = httpDownloadMock
+
+      // Temporarily remove JEST_WORKER_ID to test the real logic
+      const originalJestWorkerId = process.env.JEST_WORKER_ID
+      delete process.env.JEST_WORKER_ID
+
+      try {
+        const result = await fetchExpectedSha('1.4.304.0', 'vulkansdk-linux-x86_64-1.4.304.0.tar.xz')
+        expect(result).toBe('expected-sha')
+        expect(httpDownloadMock).toHaveBeenCalledWith('https://sdk.lunarg.com/sdk/sha/1.4.304.0/linux/vulkansdk-linux-x86_64-1.4.304.0.tar.xz.json')
+      } finally {
+        // Restore JEST_WORKER_ID
+        if (originalJestWorkerId) {
+          process.env.JEST_WORKER_ID = originalJestWorkerId
+        }
+      }
+    })
+
+    it('fetchExpectedSha handles invalid response', async () => {
+      jest.spyOn(platform, 'getPlatform').mockReturnValue('linux')
+      // Mock httpDownload to return invalid JSON
+      const httpDownloadMock = jest.fn().mockResolvedValue(JSON.stringify({ invalid: 'response' }))
+      require('../src/http').download = httpDownloadMock
+
+      // Temporarily remove JEST_WORKER_ID
+      const originalJestWorkerId = process.env.JEST_WORKER_ID
+      delete process.env.JEST_WORKER_ID
+
+      try {
+        await expect(fetchExpectedSha('1.4.304.0', 'vulkan_sdk.tar.xz')).rejects.toThrow('Unexpected response shape from Lunarg SHA API')
+      } finally {
+        if (originalJestWorkerId) {
+          process.env.JEST_WORKER_ID = originalJestWorkerId
+        }
+      }
+    })
+
+    it('fetchExpectedSha handles network error', async () => {
+      jest.spyOn(platform, 'getPlatform').mockReturnValue('linux')
+      // Mock httpDownload to reject
+      const httpDownloadMock = jest.fn().mockRejectedValue(new Error('Network error'))
+      require('../src/http').download = httpDownloadMock
+
+      // Temporarily remove JEST_WORKER_ID
+      const originalJestWorkerId = process.env.JEST_WORKER_ID
+      delete process.env.JEST_WORKER_ID
+
+      try {
+        await expect(fetchExpectedSha('1.4.304.0', 'vulkan_sdk.tar.xz')).rejects.toThrow('Network error')
+      } finally {
+        if (originalJestWorkerId) {
+          process.env.JEST_WORKER_ID = originalJestWorkerId
+        }
+      }
     })
   })
 })
