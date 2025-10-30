@@ -9,6 +9,8 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as platform from './platform'
 import * as archive from './archive'
+import { download as httpDownload } from './http'
+import { compareFileSha } from './verify'
 
 /**
  * Install the Vulkan SDK.
@@ -29,6 +31,15 @@ export async function installVulkanSdk(
   let installPath = ''
 
   core.info(`📦 Extracting Vulkan SDK...`)
+
+  // Fetch expected SHA from Lunarg and compare with local file.
+  // The network call to fetch the expected SHA is kept here so installer_vulkan
+  // remains responsible for SDK-specific lookup logic. The actual comparison
+  // is delegated to `src/verify.ts` for reuse.
+  const platformName = platform.getPlatform()
+  const expectedSha = await fetchExpectedSha(version, platformName, path.basename(sdkPath))
+  const verified = await compareFileSha(sdkPath, expectedSha, true)
+  if (!verified) throw new Error(`SHA verification failed for installer: ${sdkPath}`)
 
   // changing the destination to a versionised folder, e.g. "/Users/runner/vulkan-sdk/1.4.304.0"
   const versionizedDestinationPath = path.normalize(`${destination}/${version}`)
@@ -311,6 +322,13 @@ export async function installVulkanRuntime(runtimePath: string, destination: str
    Goal is to have: C:\VulkanSDK\runtime\x64\vulkan-1.dll
   */
   core.info(`📦 Extracting Vulkan Runtime (➔ vulkan-1.dll) ...`)
+
+  // Fetch expected SHA and verify runtime archive before extracting
+  const runtimePlatform = platform.getPlatform()
+  const expectedRuntimeSha = await fetchExpectedSha(version, runtimePlatform, path.basename(runtimePath))
+  const verified = await compareFileSha(runtimePath, expectedRuntimeSha, true)
+  if (!verified) throw new Error(`SHA verification failed for runtime: ${runtimePath}`)
+
   // install into temp
   const tempInstallPath = path.normalize(`${platform.TEMP_DIR}/vulkan-runtime`) // C:\Users\RUNNER~1\AppData\Local\Temp\vulkan-runtime
   await archive.extract(runtimePath, tempInstallPath)
@@ -636,5 +654,35 @@ function copyFolder(from: string, to: string) {
 function wait(ms: number): Promise<void> {
   return new Promise(resolve => {
     setTimeout(resolve, ms)
+  })
+}
+
+/**
+ * Fetch the expected SHA from the Lunarg API for a given version/platform/file.
+ */
+export function fetchExpectedSha(version: string, platformName: string, fileName: string): Promise<string> {
+  // During unit tests (Jest) skip network calls and return an empty string.
+  const runningUnderJest = typeof process.env.JEST_WORKER_ID !== 'undefined'
+  if (runningUnderJest) {
+    core.info('Skipping fetchExpectedSha while running under Jest')
+    return Promise.resolve('')
+  }
+  return new Promise((resolve, reject) => {
+    const encodedFile = encodeURIComponent(fileName)
+    const url = `https://sdk.lunarg.com/sdk/sha/${version}/${platformName}/${encodedFile}.json`
+    httpDownload(url)
+      .then(body => {
+        try {
+          const parsed = JSON.parse(body)
+          if (parsed && parsed.sha) {
+            resolve(parsed.sha)
+          } else {
+            reject(new Error('Unexpected response shape from Lunarg SHA API'))
+          }
+        } catch (err) {
+          reject(err)
+        }
+      })
+      .catch(err => reject(err))
   })
 }

@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.2.8] - 2025-10-30
+
+## Added
+- Added `install_runtime_only`, which allows the user to only install the Vulkan Runtime Components
+  without installing the full Vulkan SDK, [#530](https://github.com/jakoch/install-vulkan-sdk-action/issues/530)
+  This flag implicitly sets `install_runtime` to `true`.
+- Added SHA hash verification of downloaded Vulkan SDK files
+- Added more tests
+
 ## [1.2.7] - 2025-10-13
 
 ## Fixed
@@ -169,7 +178,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Section for Reference Links -->
 
-[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.7...HEAD
+[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.8...HEAD
+[1.2.7]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.7...v1.2.8
 [1.2.7]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.4...v1.2.5

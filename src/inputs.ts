@@ -19,6 +19,7 @@ export interface Inputs {
   version: string
   destination: string
   installRuntime: boolean
+  installRuntimeOnly: boolean
   useCache: boolean
   optionalComponents: string[]
   stripdown: boolean
@@ -47,6 +48,7 @@ export async function getInputs(): Promise<Inputs> {
   const inputVulkanVersion = core.getInput('vulkan_version', { required: false })
   const inputDestination = core.getInput('destination', { required: false })
   const inputInstallRuntime = core.getInput('install_runtime', { required: false })
+  const inputInstallRuntimeOnly = core.getInput('install_runtime_only', { required: false })
   const inputUseCache = core.getInput('cache', { required: false })
   const inputOptionalComponents = core.getInput('optional_components', { required: false })
   const inputStripdown = core.getInput('stripdown', { required: false })
@@ -66,6 +68,7 @@ export async function getInputs(): Promise<Inputs> {
     version: await getInputVulkanVersion(inputVulkanVersion),
     destination: await getInputVulkanDestination(inputDestination),
     installRuntime: /true/i.test(inputInstallRuntime),
+    installRuntimeOnly: /true/i.test(inputInstallRuntimeOnly),
     useCache: /true/i.test(inputUseCache),
     optionalComponents: await getInputVulkanOptionalComponents(inputOptionalComponents),
     stripdown: /true/i.test(inputStripdown),
@@ -84,6 +87,12 @@ export async function getInputs(): Promise<Inputs> {
   }
 
   // Apply implicit conditions
+
+  // When the user wants to install only the runtime, implicitly enable the runtime installation.
+  // In this case the user doesn't have to set both flags in his workflow step.
+  if (inputs.installRuntimeOnly) {
+    inputs.installRuntime = true
+  }
 
   // If a swiftshader_version was explicitly set, install SwiftShader
   /*if (!inputs.installSwiftshader && inputs.swiftshaderVersionExplicit) {

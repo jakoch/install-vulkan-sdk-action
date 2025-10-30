@@ -167,6 +167,12 @@ export async function downloadVulkanSdk(version: string): Promise<string> {
 /**
  * Download Vulkan Runtime (Windows only).
  *
+ * Two use cases:
+ * 1) This is the separate runtime installer for versions < 1.4.313.1.
+ *    After 1.4.313.1 the runtime is bundled with the SDK installer, see
+ *    installVulkanRuntimeFromSdk() in installer_vulkan.ts.
+ * 2) This is used, if the user wants to install only the runtime without SDK!
+ *
  * @export
  * @param {string} version - The version to download.
  * @return {*}  {Promise<string>} Download location.
@@ -198,7 +204,6 @@ export function getVulkanSdkFilename(version: string): string {
   if (platform.IS_LINUX || platform.IS_LINUX_ARM) {
     // For versions up to 1.3.250.1 the ending is ".tar.gz".
     // For versions after 1.3.250.1 the ending is ".tar.xz".
-    console.log(version, versions.compare(version, '1.3.250.1'))
     if (1 === versions.compare(version, '1.3.250.1')) {
       return `vulkansdk-linux-x86_64.tar.xz`
     }

@@ -6,6 +6,7 @@ import * as child from 'child_process'
 jest.mock('child_process', () => ({ execSync: jest.fn() }))
 jest.mock('@actions/core')
 jest.mock('@actions/tool-cache')
+jest.mock('../src/http')
 
 const installer = require('../src/installer_vulkan')
 const platform = require('../src/platform')
@@ -140,6 +141,29 @@ describe('installer_vulkan', () => {
     }
   })
 
+  it('installVulkanRuntimeFromSdk warns when system files do not exist', () => {
+    const core = require('@actions/core')
+    const spyWarning = jest.spyOn(core, 'warning').mockImplementation(() => undefined)
+
+    const originalCwd = process.cwd()
+    const tmpRoot2 = path.join(tmpRoot, 'test_missing')
+    fs.mkdirSync(tmpRoot2, { recursive: true })
+    try {
+      process.chdir(tmpRoot2)
+      // Do not create the dll files, so the existsSync returns false
+
+      const dest = path.join(tmpRoot2, 'sdk', '1.2.3.4')
+      const installed = installer.installVulkanRuntimeFromSdk(dest)
+      expect(installed).toContain(path.normalize(`${dest}/runtime`))
+      // verify warnings were called
+      expect(spyWarning).toHaveBeenCalledWith(`   No x86 runtime files found in C:/WINDOWS/SysWOW64/. Skipping copy.`)
+      expect(spyWarning).toHaveBeenCalledWith(`   No x64 runtime files found in C:/WINDOWS/system32/. Skipping copy.`)
+    } finally {
+      process.chdir(originalCwd)
+      spyWarning.mockRestore()
+    }
+  })
+
   it('installVulkanSdkMacDmg should call setFailed on installer error but still detach', async () => {
     const core = require('@actions/core')
     const spySetFailed = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
@@ -162,6 +186,34 @@ describe('installer_vulkan', () => {
 
     await installer.installVulkanSdkMacDmg(sdkPath, destination, '1.3.290.0', [])
     expect(spySetFailed).toHaveBeenCalled()
+    spySetFailed.mockRestore()
+  })
+
+  it('installVulkanSdkMacDmg should handle unknown error types', async () => {
+    const core = require('@actions/core')
+    const spyError = jest.spyOn(core, 'error').mockImplementation(() => undefined)
+    const spySetFailed = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
+
+    Object.defineProperty(platform, 'IS_MAC', { value: true, configurable: true })
+
+    // mock execSync to succeed on attach, throw unknown error on installer, succeed on detach
+    ;(child.execSync as jest.Mock).mockImplementation((cmd: string) => {
+      const s = String(cmd)
+      if (s.includes('hdiutil attach')) return Buffer.from('')
+      // throw unknown error for the installer invocation
+      if (s.includes('InstallVulkan') || s.includes('vulkansdk-macOS')) throw 'unknown error'
+      if (s.includes('hdiutil detach')) return Buffer.from('')
+      return Buffer.from('')
+    })
+
+    const sdkPath = '/tmp/fake.dmg'
+    const destination = path.join(tmpRoot, 'mac_unknown_fail')
+    fs.mkdirSync(destination, { recursive: true })
+
+    await installer.installVulkanSdkMacDmg(sdkPath, destination, '1.3.290.0', [])
+    expect(spyError).toHaveBeenCalledWith('An unknown error occurred.')
+    expect(spySetFailed).toHaveBeenCalled()
+    spyError.mockRestore()
     spySetFailed.mockRestore()
   })
 
@@ -188,6 +240,32 @@ describe('installer_vulkan', () => {
     spySetFailed.mockRestore()
   })
 
+  it('installVulkanSdkMacZip should handle unknown error types', async () => {
+    const core = require('@actions/core')
+    const spyError = jest.spyOn(core, 'error').mockImplementation(() => undefined)
+    const spySetFailed = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
+
+    Object.defineProperty(platform, 'IS_MAC', { value: true, configurable: true })
+    ;(archive.extract as jest.Mock) = jest.fn().mockResolvedValue(path.join(tmpRoot, 'extracted'))
+
+    ;(child.execSync as jest.Mock).mockImplementation((cmd: string) => {
+      if (String(cmd).includes('/tmp')) throw 'unknown error'
+      return Buffer.from('')
+    })
+
+    const ret = await installer.installVulkanSdkMacZip(
+      '/tmp/fake.zip',
+      path.join(tmpRoot, 'mac_zip_unknown_fail'),
+      '1.4.305.0',
+      []
+    )
+    expect(ret).toBe(path.join(tmpRoot, 'mac_zip_unknown_fail'))
+    expect(spyError).toHaveBeenCalledWith('An unknown error occurred.')
+    expect(spySetFailed).toHaveBeenCalled()
+    spyError.mockRestore()
+    spySetFailed.mockRestore()
+  })
+
   it('installVulkanSdkWindows should call setFailed on installer error', async () => {
     const core = require('@actions/core')
     const spySetFailed = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
@@ -202,6 +280,26 @@ describe('installer_vulkan', () => {
     const ret = await installer.installVulkanSdkWindows(sdkPath, destination, [])
     expect(ret).toBe(destination)
     expect(spySetFailed).toHaveBeenCalled()
+    spySetFailed.mockRestore()
+  })
+
+  it('installVulkanSdkWindows should handle unknown error types', async () => {
+    const core = require('@actions/core')
+    const spyError = jest.spyOn(core, 'error').mockImplementation(() => undefined)
+    const spySetFailed = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
+
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: true, configurable: true })
+    ;(child.execSync as jest.Mock).mockImplementation(() => {
+      throw 'unknown windows error'
+    })
+
+    const sdkPath = path.normalize('C:\\fake\\VulkanSDK-Installer.exe')
+    const destination = path.normalize('C:\\VulkanSDK\\1.2.3.4')
+    const ret = await installer.installVulkanSdkWindows(sdkPath, destination, [])
+    expect(ret).toBe(destination)
+    expect(spyError).toHaveBeenCalledWith('An unknown error occurred.')
+    expect(spySetFailed).toHaveBeenCalled()
+    spyError.mockRestore()
     spySetFailed.mockRestore()
   })
 
@@ -324,8 +422,20 @@ describe('installer_vulkan', () => {
     // test path resolution for linux
     Object.defineProperty(platform, 'IS_LINUX', { value: true, configurable: true })
     const sdkBase = '/usr/vulkan-sdk/1.2.3.4/x86_64'
-    const infoPath = installer.getVulkanInfoPath(sdkBase)
-    expect(infoPath).toContain(path.join('bin', 'vulkaninfo'))
+    const infoPathLinux = installer.getVulkanInfoPath(sdkBase)
+    expect(infoPathLinux).toContain(path.join('bin', 'vulkaninfo'))
+
+    // test path resolution for windows
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: true, configurable: true })
+    Object.defineProperty(platform, 'IS_LINUX', { value: false, configurable: true })
+    const infoPathWindows = installer.getVulkanInfoPath(sdkBase)
+    expect(infoPathWindows).toContain(path.join('bin', 'vulkaninfoSDK.exe'))
+
+    // test path resolution for mac
+    Object.defineProperty(platform, 'IS_MAC', { value: true, configurable: true })
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: false, configurable: true })
+    const infoPathMac = installer.getVulkanInfoPath(sdkBase)
+    expect(infoPathMac).toContain(path.join('bin', 'vulkaninfo'))
 
     // create the expected install path for verification
     const runtimeBase = path.join(tmpRoot, 'verify_runtime')
@@ -336,6 +446,7 @@ describe('installer_vulkan', () => {
 
     Object.defineProperty(platform, 'IS_WINDOWS', { value: true, configurable: true })
     Object.defineProperty(platform, 'IS_WINDOWS_ARM', { value: false, configurable: true })
+    Object.defineProperty(platform, 'IS_MAC', { value: false, configurable: true })
     const ok = installer.verifyInstallationOfRuntime(runtimeBase)
     expect(ok).toBeTruthy()
   })
@@ -414,6 +525,30 @@ describe('installer_vulkan', () => {
     spyError.mockRestore()
   })
 
+  it('runVulkanInfo logs unknown error if execSync throws non-Error', () => {
+    const core = require('@actions/core')
+    const spyError = jest.spyOn(core, 'error').mockImplementation(() => undefined)
+
+    const fakeExe = path.join(tmpRoot, 'vulkaninfo_unknown_error')
+    fs.writeFileSync(fakeExe, '')
+    ;(child.execSync as jest.Mock).mockImplementation(() => {
+      throw 'string error'
+    })
+
+    installer.runVulkanInfo(fakeExe)
+    expect(spyError).toHaveBeenCalledWith('An unknown error occurred while running vulkaninfo.')
+    spyError.mockRestore()
+  })
+
+  it('stripdownInstallationOfSdk handles missing folders gracefully', () => {
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: true, configurable: true })
+    const sdkPath = path.join(tmpRoot, 'strip_missing')
+    fs.mkdirSync(sdkPath, { recursive: true })
+    // Do not create any subfolders, so removeFolderIfExists will hit the else branch
+
+    expect(() => installer.stripdownInstallationOfSdk(sdkPath)).not.toThrow()
+  })
+
   it('stripdownInstallationOfSdk handles rmSync throwing and continues to delete files', () => {
     Object.defineProperty(platform, 'IS_WINDOWS', { value: true, configurable: true })
     const sdkPath = path.join(tmpRoot, 'strip_error')
@@ -445,5 +580,62 @@ describe('installer_vulkan', () => {
     // no x64 files
     const ok = installer.verifyInstallationOfRuntime(runtimeBase)
     expect(ok).toBe(false)
+  })
+
+  it('fetchExpectedSha fetches SHA from Lunarg API', async () => {
+    // Mock httpDownload
+    const httpDownloadMock = jest.fn().mockResolvedValue(JSON.stringify({ sha: 'expected-sha' }))
+    require('../src/http').download = httpDownloadMock
+
+    // Temporarily remove JEST_WORKER_ID to test the real logic
+    const originalJestWorkerId = process.env.JEST_WORKER_ID
+    delete process.env.JEST_WORKER_ID
+
+    try {
+      const result = await installer.fetchExpectedSha('1.4.304.0', 'linux', 'vulkan-sdk.tar.xz')
+      expect(result).toBe('expected-sha')
+      expect(httpDownloadMock).toHaveBeenCalledWith('https://sdk.lunarg.com/sdk/sha/1.4.304.0/linux/vulkan-sdk.tar.xz.json')
+    } finally {
+      // Restore JEST_WORKER_ID
+      if (originalJestWorkerId) {
+        process.env.JEST_WORKER_ID = originalJestWorkerId
+      }
+    }
+  })
+
+  it('fetchExpectedSha handles invalid response', async () => {
+    // Mock httpDownload to return invalid JSON
+    const httpDownloadMock = jest.fn().mockResolvedValue(JSON.stringify({ invalid: 'response' }))
+    require('../src/http').download = httpDownloadMock
+
+    // Temporarily remove JEST_WORKER_ID
+    const originalJestWorkerId = process.env.JEST_WORKER_ID
+    delete process.env.JEST_WORKER_ID
+
+    try {
+      await expect(installer.fetchExpectedSha('1.4.304.0', 'linux', 'vulkan-sdk.tar.xz')).rejects.toThrow('Unexpected response shape from Lunarg SHA API')
+    } finally {
+      if (originalJestWorkerId) {
+        process.env.JEST_WORKER_ID = originalJestWorkerId
+      }
+    }
+  })
+
+  it('fetchExpectedSha handles network error', async () => {
+    // Mock httpDownload to reject
+    const httpDownloadMock = jest.fn().mockRejectedValue(new Error('Network error'))
+    require('../src/http').download = httpDownloadMock
+
+    // Temporarily remove JEST_WORKER_ID
+    const originalJestWorkerId = process.env.JEST_WORKER_ID
+    delete process.env.JEST_WORKER_ID
+
+    try {
+      await expect(installer.fetchExpectedSha('1.4.304.0', 'linux', 'vulkan-sdk.tar.xz')).rejects.toThrow('Network error')
+    } finally {
+      if (originalJestWorkerId) {
+        process.env.JEST_WORKER_ID = originalJestWorkerId
+      }
+    }
   })
 })

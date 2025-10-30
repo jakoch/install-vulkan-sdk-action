@@ -25,6 +25,9 @@ inputs:
   install_runtime:
     description: "Windows only. Installs the vulkan runtime (vulkan-1.dll). Default: false."
     required: false
+  install_runtime_only:
+    description: "Windows only. Disables the installation of the Vulkan SDK and installs only runtimes. Default: false."
+    required: false
   cache:
     description: "Cache the Vulkan installation folder. Default: false."
     required: false

@@ -13,6 +13,19 @@ export const client: httpm.HttpClient = new httpm.HttpClient('install-vulkan-sdk
 })
 
 /**
+ * Download the given URL and return the response body as text.
+ * Throws on non-2xx responses.
+ */
+export async function download(url: string): Promise<string> {
+  const response = await client.get(url)
+  const statusCode = response.message.statusCode
+  if (statusCode !== undefined && statusCode >= 400) {
+    throw new Error(`Failed to download ${url} - HTTP status ${statusCode}`)
+  }
+  return response.readBody()
+}
+
+/**
  * is_downloadable checks, if an URL returns HTTP Status Code 200.
  * Otherwise, it throws an error.
  *
