@@ -594,7 +594,7 @@ describe('installer_vulkan', () => {
     try {
       const result = await installer.fetchExpectedSha('1.4.304.0', 'linux', 'vulkan-sdk.tar.xz')
       expect(result).toBe('expected-sha')
-      expect(httpDownloadMock).toHaveBeenCalledWith('https://sdk.lunarg.com/sdk/sha/1.4.304.0/linux/vulkan-sdk.tar.xz.json')
+      expect(httpDownloadMock).toHaveBeenCalledWith('https://sdk.lunarg.com/sdk/sha/1.4.304.0/linux/vulkan_sdk.tar.xz.json')
     } finally {
       // Restore JEST_WORKER_ID
       if (originalJestWorkerId) {
@@ -613,7 +613,7 @@ describe('installer_vulkan', () => {
     delete process.env.JEST_WORKER_ID
 
     try {
-      await expect(installer.fetchExpectedSha('1.4.304.0', 'linux', 'vulkan-sdk.tar.xz')).rejects.toThrow('Unexpected response shape from Lunarg SHA API')
+      await expect(installer.fetchExpectedSha('1.4.304.0', 'linux', 'vulkan_sdk.tar.xz')).rejects.toThrow('Unexpected response shape from Lunarg SHA API')
     } finally {
       if (originalJestWorkerId) {
         process.env.JEST_WORKER_ID = originalJestWorkerId
@@ -631,7 +631,7 @@ describe('installer_vulkan', () => {
     delete process.env.JEST_WORKER_ID
 
     try {
-      await expect(installer.fetchExpectedSha('1.4.304.0', 'linux', 'vulkan-sdk.tar.xz')).rejects.toThrow('Network error')
+      await expect(installer.fetchExpectedSha('1.4.304.0', 'linux', 'vulkan_sdk.tar.xz')).rejects.toThrow('Network error')
     } finally {
       if (originalJestWorkerId) {
         process.env.JEST_WORKER_ID = originalJestWorkerId

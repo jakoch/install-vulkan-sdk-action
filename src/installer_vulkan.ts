@@ -667,9 +667,27 @@ export function fetchExpectedSha(version: string, platformName: string, fileName
     core.info('Skipping fetchExpectedSha while running under Jest')
     return Promise.resolve('')
   }
+
+  // Normalize filename based on platform
+  // See https://vulkan.lunarg.com/content/view/latest-sdk-version-api
+  let normalizedFileName: string
+  switch (platformName) {
+    case 'windows':
+    case 'warm':
+      normalizedFileName = 'vulkan_sdk.exe'
+      break
+    case 'linux':
+      normalizedFileName = 'vulkan_sdk.tar.xz'
+      break
+    case 'mac':
+      normalizedFileName = 'vulkan_sdk.zip'
+      break
+    default:
+      normalizedFileName = fileName // fallback to original if unknown platform
+  }
+
   return new Promise((resolve, reject) => {
-    const encodedFile = encodeURIComponent(fileName)
-    const url = `https://sdk.lunarg.com/sdk/sha/${version}/${platformName}/${encodedFile}.json`
+    const url = `https://sdk.lunarg.com/sdk/sha/${version}/${platformName}/${normalizedFileName}.json`
     httpDownload(url)
       .then(body => {
         try {
