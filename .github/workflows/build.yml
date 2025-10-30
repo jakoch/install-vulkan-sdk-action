@@ -398,12 +398,15 @@ jobs:
         run: |
           reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json" /t REG_DWORD /d 0 /f
 
+      # And of course the file is named vulkaninfoSDK.exe when from the SDK
+      # and named vulkaninfo.exe when from the runtime only package.
+      # I see we love consistency at LunarG... :)
       - name: (Lavapipe) Run vulkaninfoSDK
         if: contains(matrix.config.OS, 'windows')
         working-directory: ${{env.VULKAN_SDK}}/${{env.VULKAN_VERSION}}/runtime
         shell: pwsh
         run: |
-          vulkaninfoSDK.exe -j -o lavapipe_profile.json
+          vulkaninfo.exe -j -o lavapipe_profile.json
           Get-Content -Raw lavapipe_profile.json
 
       - name: (Lavapipe) Output Device Name from Profile
