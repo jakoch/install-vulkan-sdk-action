@@ -166,7 +166,8 @@ export async function downloadVulkanSdk(version: string): Promise<string> {
   if (platform.IS_LINUX_ARM) {
     core.info(`   Skipping SHA verification for custom ARM build.`)
   } else {
-    const expectedSha = await fetchExpectedSha(version, path.basename(sdkPath))
+    // Use the URL to get the long form filename for SHA verification
+    const expectedSha = await fetchExpectedSha(version, path.basename(url))
     const verified = await compareFileSha(sdkPath, expectedSha, true)
     if (!verified) throw new Error(`SHA verification failed for installer: ${sdkPath}`)
   }
