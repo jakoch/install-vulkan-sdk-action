@@ -403,7 +403,7 @@ jobs:
       # I see we love consistency at LunarG... :)
       - name: (Lavapipe) Run vulkaninfoSDK
         if: contains(matrix.config.OS, 'windows')
-        working-directory: ${{env.VULKAN_SDK}}/${{env.VULKAN_VERSION}}/runtime
+        working-directory: ${{env.VULKAN_SDK}}/${{env.VULKAN_VERSION}}/runtime/x64
         shell: pwsh
         run: |
           vulkaninfo.exe -j -o lavapipe_profile.json
