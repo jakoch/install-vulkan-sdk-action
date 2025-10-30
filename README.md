@@ -87,7 +87,8 @@ The following inputs can be used as `steps.with` keys:
 | `vulkan_version`         | String  | A Vulkan SDK version (eg. `1.3.231.1`). | If `vulkan_version` is not set, the latest version is used. | false |
 | `destination`            | String  | The Vulkan SDK installation folder.     | Windows: `C:\VulkanSDK`. Linux/MacOS: `%HOME/vulkan-sdk` | false |
 | `optional_components`    | String  | Comma-separated list of components to install. | Default: no optional components. | false |
-| `install_runtime`        | bool    | Windows only. Installs the vulkan runtime ('vulkan-1.dll') into a `runtime` folder inside `destination`, if true. Windows: `C:\VulkanSDK\runtime`.    | true | false |
+| `install_runtime`        | bool    | Windows only. Installs the vulkan runtime ('vulkan-1.dll') into a `runtime` folder inside `destination`, if true. Windows: `C:\VulkanSDK\{vulkan_version}\runtime\{x86,x64}`. | true | false |
+| `install_runtime_only`   | bool    | Windows only. Installs only the Vulkan Runtime components. Disables the installation of the Vulkan SDK. Implicitly sets `install_runtime` to true. | false |
 | `cache`                  | bool    | Cache the Vulkan installation folder.   | true | false |
 | `stripdown`              | bool    | Windows only. Whether to reduce the size of the SDK, before caching. | false | false |
 | `install_swiftshader`    | bool    | Windows only. Installs Google's SwiftShader software rasterizer. Default: false. | false | false
