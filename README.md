@@ -4,7 +4,9 @@
 
 # Github Action: Install Vulkan SDK <!-- omit in toc -->
 
-A Github Action to install the Vulkan SDK and runtime library. It also supports installing SwiftShader and Lavapipe software rasterizers.
+A Github Action to install the Vulkan SDK and runtime library.
+
+It also supports installing SwiftShader and Lavapipe software rasterizers.
 
 ## Contents <!-- omit in toc -->
 
@@ -20,9 +22,17 @@ A Github Action to install the Vulkan SDK and runtime library. It also supports 
   - [What is the Vulkan SDK for ARM?](#what-is-the-vulkan-sdk-for-arm)
   - [What is the Vulkan Runtime?](#what-is-the-vulkan-runtime)
   - [What are Installable Client Drivers (ICDs)?](#what-are-installable-client-drivers-icds)
-- [About SwiftShader](#about-swiftshader)
-  - [Installing SwiftShader](#installing-swiftshader)
-  - [Registering SwiftShader as Vulkan Driver](#registering-swiftshader-as-vulkan-driver)
+  - [Where to find Vulkan Documentation](#where-to-find-vulkan-documentation)
+- [Software Rasterizers](#software-rasterisers)
+  - [SwiftShader](#about-swiftshader)
+    - [What is SwiftShader?](#what-is-swiftshader)
+    - [Installing SwiftShader](#installing-swiftshader)
+    - [Registering SwiftShader as Vulkan Driver](#registering-swiftshader-as-vulkan-driver)
+  - [LLVMPipe and Lavapipe](#llvmpipe-and-lavapipe)
+    - [What is LLVMPipe? What is Lavapipe?](#what-is-llvmpipe-what-is-lavapipe)
+    - [Installing Lavapipe](#installing-lavapipe)
+    - [Registering Lavapipe as Vulkan Driver](#registering-lavapipe-as-vulkan-driver)
+  - [Troubleshooting Loader Issues](#troubleshooting-loader-issues)
 - [License](#license)
 - [Development Reminder](#development-reminder)
 
@@ -33,9 +43,10 @@ This action has the following features:
 - This action can be used to install the Vulkan SDK in your Github Action workflows.
   - The action automatically retrieves the latest Vulkan SDK version if no specific version is provided.
 - The installation of optional SDK components is supported.
-- The action can be used to install the Vulkan Runtime (only on Windows) using download retries and automatic version lowering.
+- The action can be used to install the Vulkan Runtime (Windows only) using download retries and automatic version lowering.
+- This action allows you to install just the Vulkan Runtime, without the full Vulkan SDK (Windows only).
 - The action supports Github Actions cache (for the Vulkan SDK and runtime).
-  - The size of the installed SDK is reduced to achieve a smaller cache package size (only on Windows).
+  - The size of the installed SDK is reduced to achieve a smaller cache package size (Windows only).
 - The installer supports runners for Windows, Linux, macOS, Windows-ARM, and Linux-ARM.
   - The repository [https://github.com/jakoch/vulkan-sdk-arm](https://github.com/jakoch/vulkan-sdk-arm) is used to build and package the Vulkan SDK for ARM64 runners.
 - The action can be used to install the software rasterizers: Google SwiftShader and Mesa Lavapipe.
@@ -88,7 +99,7 @@ The following inputs can be used as `steps.with` keys:
 | `destination`            | String  | The Vulkan SDK installation folder.     | Windows: `C:\VulkanSDK`. Linux/MacOS: `%HOME/vulkan-sdk` | false |
 | `optional_components`    | String  | Comma-separated list of components to install. | Default: no optional components. | false |
 | `install_runtime`        | bool    | Windows only. Installs the vulkan runtime ('vulkan-1.dll') into a `runtime` folder inside `destination`, if true. Windows: `C:\VulkanSDK\{vulkan_version}\runtime\{x86,x64}`. | true | false |
-| `install_runtime_only`   | bool    | Windows only. Installs only the Vulkan Runtime components. Disables the installation of the Vulkan SDK. Implicitly sets `install_runtime` to true. | false |
+| `install_runtime_only`   | bool    | Windows only. Installs just the Vulkan Runtime components and disables the installation of the Vulkan SDK. Implicitly sets `install_runtime` to true. | false | false |
 | `cache`                  | bool    | Cache the Vulkan installation folder.   | true | false |
 | `stripdown`              | bool    | Windows only. Whether to reduce the size of the SDK, before caching. | false | false |
 | `install_swiftshader`    | bool    | Windows only. Installs Google's SwiftShader software rasterizer. Default: false. | false | false
@@ -198,22 +209,56 @@ In order to work with a driver, you have to register them in the Windows registr
 
 #### Typical Driver Loading Flow
 
-When you run something like `vulkaninfoSDK.exe`:
+When you run the Vulkan Info Tool (`vulkaninfoSDK.exe`):
 
 1. The Vulkan loader checks the registry at `HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\Drivers`.
 2. It finds all .json ICD files listed there.
 3. It loads each ICD and queries its capabilities (e.g., from AMD, NVIDIA, Intel, SwiftShader, Lavapipe, etc.).
 4. It reports back all devices and properties in your system.
 
-## About SwiftShader
+### Where to find Vulkan Documentation?
+
+#### Vulkan Specification
+
+- [HTML](https://vulkan.lunarg.com/doc/view/latest/windows/antora/spec/latest/index.html)
+- [PDF](https://registry.khronos.org/vulkan/specs/latest/pdf/vkspec.pdf)
+
+#### Vulkan Docs
+
+- [Vulkan Documentation](https://docs.vulkan.org/spec/latest/index.html)
+- [Khronos Vulkan Registry](https://registry.khronos.org/vulkan/)
+- [vulkan.gpuinfo.org by Sascha Willems](https://vulkan.gpuinfo.org/)
+
+#### Vulkan SDK
+
+- Vulkan SDK: [Release Notes](https://vulkan.lunarg.com/doc/sdk/latest/windows/release_notes.html?ref=vkconfig), [Download Page](https://vulkan.lunarg.com/sdk/home?ref=vkconfig), [API](https://vulkan.lunarg.com/content/view/latest-sdk-version-api)
+- Vulkan Configurator: [Readme](https://github.com/LunarG/VulkanTools/blob/main/vkconfig_gui/README.md), [Changelog](https://github.com/LunarG/VulkanTools/blob/main/vkconfig_gui/CHANGELOG.md)
+- Vulkan Loader: [Layer Configuration](https://vulkan.lunarg.com/doc/view/latest/windows/layer_configuration.html?ref=vkconfig), [Loader Debugging Guide](https://github.com/KhronosGroup/Vulkan-Loader/blob/main/docs/LoaderDebugging.md)
+- Vulkan Validation Layer: [Readme](https://vulkan.lunarg.com/doc/sdk/1.4.328.1/windows/khronos_validation_layer.html), [Coverage Report / Error Database](https://vulkan.lunarg.com/doc/sdk/latest/windows/validation_error_database.html?ref=vkconfig)
+- Vulkan API Capture and Replay - GFXReconstruct: [Usage](https://vulkan.lunarg.com/doc/sdk/1.4.328.1/windows/capture_tools.html)
+- Vulkan Profiles Toools: [Overview](https://github.com/KhronosGroup/Vulkan-Profiles/blob/main/OVERVIEW.md), [Changelog](https://github.com/KhronosGroup/Vulkan-Profiles/blob/main/CHANGELOG.md), [Whitepaper](https://www.lunarg.com/wp-content/uploads/2024/04/The-Vulkan-Profiles-Tools-LunarG-Christophe-Riccio-04-11-2024.pdf?ref=vkconfig)
+
+#### Vulkan Community
+
+- [Vulkan Discord](https://discord.com/invite/vulkan), [Reddit](https://www.reddit.com/r/vulkan/), [StackOverflow](https://stackoverflow.com/questions/tagged/vulkan), [Mastodon](https://fosstodon.org/@vulkan)
+
+- Community Layers and Tools: [Vulkan Introspection Layer](https://github.com/nyorain/vil), [MangoHud](https://github.com/flightlessmango/MangoHud)
+
+## Software Rasterisers
+
+This action allows you to optionally install the CPU-based software rasterizers, SwiftShader and Lavapipe, which enable Vulkan API rendering on systems without dedicated GPU hardware.
+
+### SwiftShader
+
+#### What is SwiftShader?
 
 [Swiftshader](https://github.com/google/swiftshader), developed by Google,
 delivers a high-performance CPU-based implementation of the Vulkan and
 OpenGL ES APIs, ensuring graphics rendering on systems without GPU acceleration.
 
-### Installing SwiftShader
+#### Installing SwiftShader
 
-You can install it using `install_swiftshader: true`.
+You can install SwiftShader using `install_swiftshader: true`.
 
 The install location can be changed using `swiftshader_destination`.
 
@@ -227,9 +272,11 @@ vk_swiftshader_icd.json
 vulkan-1.dll
 ```
 
-### Registering SwiftShader as Vulkan Driver
+#### Registering SwiftShader as Vulkan Driver
 
-To register SwiftShader as a Vulkan Installable Client Driver (ICD), you need to add its ICD manifest file to the Windows registry.
+To make SwiftShader available as a Vulkan renderer, you must register it as an Installable Client Driver (ICD).
+
+This is done by placing its JSON manifest file, which identifies the ICD and provides the path to the driver DLL, into the Windows registry.
 
 You can do this using PowerShell with the following command:
 
@@ -237,7 +284,9 @@ You can do this using PowerShell with the following command:
 reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\Swiftshader\vk_swiftshader_icd.json" /t REG_DWORD /d 0 /f
 ```
 
-Once registered, you can verify that the driver loads correctly and inspect its capabilities using the Vulkan SDK’s vulkaninfo tool:
+This allows the Vulkan loader to enumerate SwiftShader among available ICDs and instantiate it as needed by Vulkan applications.
+
+Once registered, you can verify that the driver loads correctly and inspect its capabilities using the Vulkan SDK’s `vulkaninfo` tool:
 
 ```
 vulkaninfoSDK.exe -j -o swiftshader_profile.json
@@ -257,11 +306,97 @@ To confirm that, you can use `jq` to extract the device name:
 jq -r '.capabilities.device.properties.VkPhysicalDeviceProperties.deviceName' swiftshader_profile.json
 ```
 
-This should output:
+This should output a line similar too:
 
 ```
 SwiftShader Device (LLVM 10.0.0)
 ```
+
+### LLVMPipe and Lavapipe
+
+#### What is LLVMpipe? What is Lavapipe?
+
+Mesa's LLVMpipe is a CPU-based software rasterizer in the Mesa 3D Graphics Library that enables OpenGL rendering without dedicated GPU hardware.
+It leverages the LLVM compiler infrastructure to translate graphics operations, including vertex processing, shader execution,
+and rasterization of points, lines, and triangles, into LLVM Intermediate Representation (IR).
+This IR is then dynamically compiled into optimized machine code for the host CPU architecture (such as x86, x86_64, or ppc64le),
+delivering a flexible and performant fallback renderer for systems lacking GPU support.
+
+Mesa's Lavapipe is CPU-based software driver for the Vulkan API.
+Like LLVMpipe, it uses LLVM to compile Vulkan shaders into native machine code, providing a fully functional Vulkan
+implementation that runs entirely on the CPU. Lavapipe serves as a critical fallback for environments without compatible
+GPU drivers, such as virtual machines or headless systems, ensuring Vulkan applications can still run when no hardware acceleration is available.
+
+In short:
+- LLVMpipe = OpenGL on the CPU
+- Lavapipe = Vulkan on the CPU
+
+As this action focuses on providing the Vulkan SDK and drivers, we focus on the installation of Lavapipe.
+
+#### Installing Lavapipe
+
+You can install Lavapipe using `install_lavapipe: true`.
+
+The install location can be changed using `lavapipe_destination`.
+
+The default location for Windows is `C:\Lavapipe`.
+
+The installation folder will contain 3 files:
+
+```
+vulkan_lvp.dll
+vulkan_lvp.lib
+share\vulkan\icd.d\lvp_icd.x86_64.json
+```
+
+#### Registering Lavapipe as Vulkan Driver
+
+To make Lavapipe available as a Vulkan renderer, you must register it as an Installable Client Driver (ICD).
+
+This is done by placing its JSON manifest file, which identifies the ICD and provides the path to the driver DLL, into the Windows registry.
+
+You can do this using PowerShell with the following command:
+
+```
+reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json" /t REG_DWORD /d 0 /f
+```
+
+This allows the Vulkan loader to enumerate Lavapipe among available ICDs and instantiate it as needed by Vulkan applications.
+
+Once registered, you can verify that the driver loads correctly and inspect its capabilities using the Vulkan SDK’s `vulkaninfo` tool:
+
+```
+vulkaninfoSDK.exe -j -o lavapipe_profile.json
+
+Get-Content -Raw lavapipe_profile.json
+```
+
+This command generates a JSON file (`lavapipe_profile.json`) containing detailed information about the
+SwiftShader Vulkan driver, including supported extensions, features, and device properties.
+
+The json file should contain an entry `capabilities.device.properties.VkPhysicalDeviceProperties` with a line similar to:
+`"deviceName": "llvmpipe (LLVM 21.1.4, 256 bits)"`.
+
+To confirm that, you can use `jq` to extract the device name:
+
+```
+jq -r '.capabilities.device.properties.VkPhysicalDeviceProperties.deviceName' lavapipe_profile.json
+```
+
+This should output a line similar too:
+```
+llvmpipe (LLVM 21.1.4, 256 bits)
+```
+
+### Troubleshooting Loader Issues
+
+The Vulkan loader has added logging functionality that can be enabled by using the `VK_LOADER_DEBUG` environment variable.
+
+```
+set VK_LOADER_DEBUG=error,warn,info
+```
+
+See [Loader Debugging](https://vulkan.lunarg.com/doc/view/latest/windows/LoaderDebugging.html).
 
 ## License
 
@@ -269,9 +404,11 @@ All the content in this repository is licensed under the [MIT License](https://g
 
 Copyright (c) 2021 Jens A. Koch
 
-## Development Reminder
+## Development Notes
 
-To make a new release:
+This section contains development field notes and acts as reminder for other devs and myself.
+
+### How to make a new release?
 
 - **Step 1.** Bump version number in package.json
 - **Step 2.** Run `npm run npm:install` to install the dependencies
