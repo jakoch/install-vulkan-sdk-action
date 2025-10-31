@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
-## [1.2.8] - 2025-10-30
+## [1.2.8] - 2025-10-31
 
 ## Added
 - Added `install_runtime_only`, which allows the user to only install the Vulkan Runtime Components
