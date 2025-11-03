@@ -37,7 +37,7 @@
   "dependencies": {
     "@actions/cache": "^4",
     "@actions/core": "^1",
-    "@actions/http-client": "^2",
+    "@actions/http-client": "^3",
     "@actions/io": "^2",
     "@actions/tool-cache": "^2"
   },
