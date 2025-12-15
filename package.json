@@ -35,7 +35,7 @@
   ],
   "main": "lib/main.js",
   "dependencies": {
-    "@actions/cache": "^4",
+    "@actions/cache": "^5",
     "@actions/core": "^2",
     "@actions/http-client": "^3",
     "@actions/io": "^2",
