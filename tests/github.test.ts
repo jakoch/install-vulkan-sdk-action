@@ -1,3 +1,8 @@
+/*-----------------------------------------------------------------------------
+ *  SPDX-FileCopyrightText: 2021-2026 Jens A. Koch
+ *  SPDX-License-Identifier: MIT
+ *----------------------------------------------------------------------------*/
+
 import * as http from '../src/http'
 import * as core from '@actions/core'
 import { getLatestRelease, getLatestVersion, type GithubRelease } from '../src/github'

@@ -1,3 +1,8 @@
+/*-----------------------------------------------------------------------------
+ *  SPDX-FileCopyrightText: 2021-2026 Jens A. Koch
+ *  SPDX-License-Identifier: MIT
+ *----------------------------------------------------------------------------*/
+
 import {
   getUrlVulkanSdk,
   getUrlVulkanRuntime,
