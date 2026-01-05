@@ -6,6 +6,7 @@
 import * as http from './http'
 import * as errors from './errors'
 import * as core from '@actions/core'
+import * as path from 'node:path'
 import * as tc from '@actions/tool-cache'
 import * as versionsRasterizers from './versions_rasterizers'
 
@@ -66,4 +67,15 @@ export async function getLatestVersion(): Promise<{ url: string; version: string
   }
 
   return { url: info.url, version: info.version }
+}
+
+/**
+ * Compute SwiftShader ICD file paths for a given install path.
+ *
+ * @export
+ * @param {string} installPath
+ * @returns {string[]} array of ICD file paths
+ */
+export function setupSwiftshader(installPath: string): string[] {
+  return [path.normalize(`${installPath}/vk_swiftshader_icd.json`)]
 }

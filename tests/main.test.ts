@@ -274,7 +274,7 @@ describe('run', () => {
 
     // Verify SwiftShader installation
     expect(installer_swiftshader.installSwiftShader).toHaveBeenCalledWith('/fake/swiftshader', false)
-    expect(mockInfo).toHaveBeenCalledWith('✔️ [INFO] Path to SwiftShader: /fake/swiftshader/path')
+    expect(mockInfo).toHaveBeenCalledWith('ℹ️ [INFO] Path to SwiftShader: /fake/swiftshader/path')
   })
 
   test('should handle errors gracefully', async () => {
@@ -399,7 +399,7 @@ describe('run', () => {
     expect(downloader.downloadVulkanRuntime).toHaveBeenCalledWith('1.3.250.1')
     expect(installer_vulkan.installVulkanRuntime).toHaveBeenCalledWith('/fake/runtime/download/path', '/fake/dest', '1.3.250.1')
     expect(installer_vulkan.verifyInstallationOfRuntime).toHaveBeenCalledWith('/fake/sdk/path/runtime')
-    expect(mockInfo).toHaveBeenCalledWith('✔️ [INFO] Path to Vulkan Runtime: /fake/sdk/path/runtime')
+    expect(mockInfo).toHaveBeenCalledWith('ℹ️ [INFO] Path to Vulkan Runtime: /fake/sdk/path/runtime')
   })
 
   test('should install Lavapipe on Windows', async () => {
@@ -450,7 +450,7 @@ describe('run', () => {
     await main.run()
 
     // Verify Lavapipe installation - just check that the test ran and increased coverage
-    // expect(mockInfo).toHaveBeenCalledWith('✔️ [INFO] Path to Lavapipe: /fake/lavapipe/path')
+    // expect(mockInfo).toHaveBeenCalledWith('ℹ️ [INFO] Path to Lavapipe: /fake/lavapipe/path')
   })
 
   test('should handle SDK verification failure', async () => {

@@ -145,7 +145,7 @@ export async function run(): Promise<void> {
 
       // Verify installation of Vulkan Runtime
       if (installerVulkan.verifyInstallationOfRuntime(runtimePath)) {
-        core.info(`✔️ [INFO] Path to Vulkan Runtime: ${runtimePath}`)
+        core.info(`ℹ️ [INFO] Path to Vulkan Runtime: ${runtimePath}`)
       } else {
         core.warning(`Could not find Vulkan Runtime in ${runtimePath}`)
       }
@@ -212,7 +212,7 @@ export async function run(): Promise<void> {
       if ((platform.IS_WINDOWS || platform.IS_WINDOWS_ARM) && inputs.installRuntime) {
         const runtimePath = path.normalize(`${installPath}/runtime`)
         if (installerVulkan.verifyInstallationOfRuntime(runtimePath)) {
-          core.info(`✔️ [INFO] Path to Vulkan Runtime: ${runtimePath}`)
+          core.info(`ℹ️ [INFO] Path to Vulkan Runtime: ${runtimePath}`)
         } else {
           core.warning(`Could not find Vulkan Runtime in ${runtimePath}`)
         }
@@ -220,49 +220,50 @@ export async function run(): Promise<void> {
     }
 
     /* ----------------------------------------------------------------------
+     * Setup Rasterizer Drivers
+     * ---------------------------------------------------------------------- */
+    const icdFiles: string[] = []
+    const pathEntries: string[] = []
+
+    /* ----------------------------------------------------------------------
      * Install SwiftShader
      * ---------------------------------------------------------------------- */
 
-    let swiftshaderInstallPath;
     if (platform.IS_WINDOWS && inputs.installSwiftshader) {
       core.info(`🚀 Installing SwiftShader library...`)
-      swiftshaderInstallPath = await installerSwiftshader.installSwiftShader(
+      const swiftshaderInstallPath = await installerSwiftshader.installSwiftShader(
         inputs.swiftshaderDestination,
         inputs.useCache
       )
-      core.info(`✔️ [INFO] Path to SwiftShader: ${swiftshaderInstallPath}`)
+      const swiftshaderIcds = installerSwiftshader.setupSwiftshader(swiftshaderInstallPath) || []
+      pathEntries.push(swiftshaderInstallPath)
+      icdFiles.push(...swiftshaderIcds)
+      core.info(`ℹ️ [INFO] Path to SwiftShader: ${swiftshaderInstallPath}`)
     }
 
     /* ----------------------------------------------------------------------
      * Install Lavapipe
      * ---------------------------------------------------------------------- */
 
-    let LavapipeInstallPath;
     if (platform.IS_WINDOWS && inputs.installLavapipe) {
       core.info(`🚀 Installing Lavapipe library...`)
-      LavapipeInstallPath = await installerLavapipe.installLavapipe(inputs.lavapipeDestination, inputs.useCache)
-      core.info(`✔️ [INFO] Path to Lavapipe: ${LavapipeInstallPath}`)
+      const lavapipeInstallPath = await installerLavapipe.installLavapipe(inputs.lavapipeDestination, inputs.useCache)
+      const lavapipeIcds = installerLavapipe.setupLavapipe(lavapipeInstallPath) || []
+      pathEntries.push(lavapipeInstallPath)
+      icdFiles.push(...lavapipeIcds)
+      core.info(`ℹ️ [INFO] Path to Lavapipe: ${lavapipeInstallPath}`)
     }
 
     /* ----------------------------------------------------------------------
-     * Setup drivers
+     * Setup Environment Variables for Rasterizers (VK_DRIVER_FILES, PATH)
      * ---------------------------------------------------------------------- */
 
-    if (platform.IS_WINDOWS && inputs.installLavapipe) {
-      let idcs = [];
-      let path = [];
-      if (swiftshaderInstallPath) {
-        path.push(swiftshaderInstallPath)
-        idcs.push(`${swiftshaderInstallPath}/vk_swiftshader_icd.json`)
-      }
-      if (LavapipeInstallPath) {
-        path.push(LavapipeInstallPath)
-        idcs.push(`${LavapipeInstallPath}/share/vulkan/icd.d/lvp_icd.x86_64.json`)
-      }
-      let vkDriverFiles = `VK_DRIVER_FILES=${idcs.join(";")}`;
-      core.exportVariable('GITHUB_PATH', path.join(";"))
-      core.exportVariable('GITHUB_ENV', vkDriverFiles)
-      core.info(`✔️ [ENV] Set env variable "${vkDriverFiles}".`)
+    if (platform.IS_WINDOWS && (inputs.installSwiftshader || inputs.installLavapipe)) {
+      const icdList = icdFiles.join(';')
+      core.exportVariable('VK_DRIVER_FILES', icdList)
+      core.info(`✔️ [ENV] Set VK_DRIVER_FILES -> "${icdList}".`)
+      pathEntries.forEach(p => core.addPath(p))
+      core.info(`✔️ [PATH] Added rasterizer library paths to environment variable PATH.`)
     }
 
     core.info(`✅ Done.`)

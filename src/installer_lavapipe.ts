@@ -8,6 +8,7 @@ import * as errors from './errors'
 import * as core from '@actions/core'
 import * as versionsRasterizers from './versions_rasterizers'
 import * as http from './http'
+import * as path from 'node:path'
 
 /**
  * Install the Mesa3D lavapipe library.
@@ -66,4 +67,15 @@ export async function getLatestVersion(): Promise<{ url: string; version: string
   }
 
   return { url: info.url, version: info.version }
+}
+
+/**
+ * Compute Lavapipe ICD file paths for a given install path.
+ *
+ * @export
+ * @param {string} installPath
+ * @returns {string[]} array of ICD file paths
+ */
+export function setupLavapipe(installPath: string): string[] {
+  return [path.normalize(`${installPath}/share/vulkan/icd.d/lvp_icd.x86_64.json`)]
 }
