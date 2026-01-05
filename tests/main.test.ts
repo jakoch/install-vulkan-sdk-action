@@ -271,7 +271,7 @@ describe('run', () => {
     await main.run()
 
     // Verify SwiftShader installation
-    expect(installer_swiftshader.installSwiftShader).toHaveBeenCalledWith('/fake/swiftshader')
+    expect(installer_swiftshader.installSwiftShader).toHaveBeenCalledWith('/fake/swiftshader', false)
     expect(mockInfo).toHaveBeenCalledWith('✔️ [INFO] Path to SwiftShader: /fake/swiftshader/path')
   })
 

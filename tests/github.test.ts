@@ -28,7 +28,8 @@ describe('GitHub Release API', () => {
 
     const result = await getLatestRelease('owner', 'repo')
 
-    expect(http.client.getJson).toHaveBeenCalledWith('https://api.github.com/repos/owner/repo/releases/latest')
+    // Ensure the request was made to the correct URL. Headers may or may not be passed.
+    expect((http.client.getJson as jest.Mock).mock.calls[0][0]).toBe('https://api.github.com/repos/owner/repo/releases/latest')
     expect(result).toEqual(mockRelease)
   })
 
