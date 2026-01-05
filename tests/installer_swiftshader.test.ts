@@ -1,7 +1,13 @@
+/*---------------------------------------------------------------------------------------------
+ *  SPDX-FileCopyrightText: 2021-2025 Jens A. Koch
+ *  SPDX-License-Identifier: MIT
+ *--------------------------------------------------------------------------------------------*/
+
 import { installSwiftShader, getLatestVersion } from '../src/installer_swiftshader'
 import * as tc from '@actions/tool-cache'
 import * as versionsRasterizers from '../src/versions_rasterizers'
 import * as http from '../src/http'
+import * as core from '@actions/core' // Import @actions/core for mocking
 import * as errors from '../src/errors'
 
 jest.mock('@actions/tool-cache')
@@ -97,6 +103,7 @@ describe('installer_swiftshader', () => {
       spyHandle.mockRestore()
     })
   })
+
   describe('getLatestVersion', () => {
     it('should return the download URL and version for the latest SwiftShader library', async () => {
       const mockDownloadUrl = 'https://example.com/swiftshader.zip'
@@ -120,13 +127,15 @@ describe('installer_swiftshader', () => {
           'lavapipe-win64': { version: '1.0.0', tag: 'v1.0.0', url: 'https://example.com/lavapipe.zip' }
         }
       })
-      const mockCoreError = jest.spyOn(require('@actions/core'), 'error').mockImplementation()
+
+      const spyError = jest.spyOn(core, 'error').mockImplementation(jest.fn())
 
       const result = await getLatestVersion()
 
-      expect(mockCoreError).toHaveBeenCalled()
+      expect(spyError).toHaveBeenCalled()
       expect(result.url).toBe('')
       expect(result.version).toBe('')
+      spyError.mockRestore()
     })
   })
 })

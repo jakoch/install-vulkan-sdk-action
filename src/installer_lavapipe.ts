@@ -67,21 +67,3 @@ export async function getLatestVersion(): Promise<{ url: string; version: string
 
   return { url: info.url, version: info.version }
 }
-
-export async function getDownloadUrl(): Promise<string> {
-  const { url, version } = await getLatestVersion()
-
-  try {
-    if (!url) throw new Error('Lavapipe download URL not found.')
-    await http.isDownloadable('Lavapipe', version, url)
-  } catch (error) {
-    errors.handleError(error as Error)
-    throw error // Rethrow the error so it can be caught in tests
-  }
-
-  return url
-}
-
-export async function extract(archivePath: string, destination: string): Promise<string> {
-  return await tc.extractZip(archivePath, destination)
-}
