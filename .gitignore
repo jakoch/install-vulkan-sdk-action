@@ -15,3 +15,6 @@ third-party/
 Thumbs.db
 
 coverage
+
+# IDE config
+.idea/
