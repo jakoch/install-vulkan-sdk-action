@@ -223,9 +223,10 @@ export async function run(): Promise<void> {
      * Install SwiftShader
      * ---------------------------------------------------------------------- */
 
+    let swiftshaderInstallPath;
     if (platform.IS_WINDOWS && inputs.installSwiftshader) {
       core.info(`🚀 Installing SwiftShader library...`)
-      const swiftshaderInstallPath = await installerSwiftshader.installSwiftShader(inputs.swiftshaderDestination)
+      swiftshaderInstallPath = await installerSwiftshader.installSwiftShader(inputs.swiftshaderDestination)
       core.info(`✔️ [INFO] Path to SwiftShader: ${swiftshaderInstallPath}`)
     }
 
@@ -233,10 +234,32 @@ export async function run(): Promise<void> {
      * Install Lavapipe
      * ---------------------------------------------------------------------- */
 
+    let LavapipeInstallPath;
     if (platform.IS_WINDOWS && inputs.installLavapipe) {
       core.info(`🚀 Installing Lavapipe library...`)
-      const LavapipeInstallPath = await installerLavapipe.installLavapipe(inputs.lavapipeDestination)
+      LavapipeInstallPath = await installerLavapipe.installLavapipe(inputs.lavapipeDestination)
       core.info(`✔️ [INFO] Path to Lavapipe: ${LavapipeInstallPath}`)
+    }
+
+    /* ----------------------------------------------------------------------
+     * Setup drivers
+     * ---------------------------------------------------------------------- */
+
+    if (platform.IS_WINDOWS && inputs.installLavapipe) {
+      let idcs = [];
+      let path = [];
+      if (swiftshaderInstallPath) {
+        path.push(swiftshaderInstallPath)
+        idcs.push(`${swiftshaderInstallPath}/vk_swiftshader_icd.json`)
+      }
+      if (LavapipeInstallPath) {
+        path.push(LavapipeInstallPath)
+        idcs.push(`${LavapipeInstallPath}/share/vulkan/icd.d/lvp_icd.x86_64.json`)
+      }
+      let vkDriverFiles = `VK_DRIVER_FILES=${idcs.join(";")}`;
+      core.exportVariable('GITHUB_PATH', path.join(";"))
+      core.exportVariable('GITHUB_ENV', vkDriverFiles)
+      core.info(`✔️ [ENV] Set env variable "${vkDriverFiles}".`)
     }
 
     core.info(`✅ Done.`)
