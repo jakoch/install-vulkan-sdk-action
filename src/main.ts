@@ -1,7 +1,7 @@
-/*---------------------------------------------------------------------------------------------
- *  SPDX-FileCopyrightText: 2021-2025 Jens A. Koch
+/*-----------------------------------------------------------------------------
+ *  SPDX-FileCopyrightText: 2021-2026 Jens A. Koch
  *  SPDX-License-Identifier: MIT
- *--------------------------------------------------------------------------------------------*/
+ *----------------------------------------------------------------------------*/
 
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
@@ -226,7 +226,10 @@ export async function run(): Promise<void> {
     let swiftshaderInstallPath;
     if (platform.IS_WINDOWS && inputs.installSwiftshader) {
       core.info(`🚀 Installing SwiftShader library...`)
-      swiftshaderInstallPath = await installerSwiftshader.installSwiftShader(inputs.swiftshaderDestination)
+      swiftshaderInstallPath = await installerSwiftshader.installSwiftShader(
+        inputs.swiftshaderDestination,
+        inputs.useCache
+      )
       core.info(`✔️ [INFO] Path to SwiftShader: ${swiftshaderInstallPath}`)
     }
 
@@ -237,7 +240,7 @@ export async function run(): Promise<void> {
     let LavapipeInstallPath;
     if (platform.IS_WINDOWS && inputs.installLavapipe) {
       core.info(`🚀 Installing Lavapipe library...`)
-      LavapipeInstallPath = await installerLavapipe.installLavapipe(inputs.lavapipeDestination)
+      LavapipeInstallPath = await installerLavapipe.installLavapipe(inputs.lavapipeDestination, inputs.useCache)
       core.info(`✔️ [INFO] Path to Lavapipe: ${LavapipeInstallPath}`)
     }
 

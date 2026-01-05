@@ -1,3 +1,8 @@
+/*-----------------------------------------------------------------------------
+ *  SPDX-FileCopyrightText: 2021-2026 Jens A. Koch
+ *  SPDX-License-Identifier: MIT
+ *----------------------------------------------------------------------------*/
+
 import * as fs from 'fs'
 import * as path from 'path'
 import * as child from 'child_process'

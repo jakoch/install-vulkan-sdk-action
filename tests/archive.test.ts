@@ -1,3 +1,8 @@
+/*-----------------------------------------------------------------------------
+ *  SPDX-FileCopyrightText: 2021-2026 Jens A. Koch
+ *  SPDX-License-Identifier: MIT
+ *----------------------------------------------------------------------------*/
+
 import * as tc from '@actions/tool-cache'
 import * as platform from '../src/platform'
 import { extract } from '../src/archive'

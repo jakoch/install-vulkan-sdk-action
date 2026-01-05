@@ -1,7 +1,7 @@
-/*---------------------------------------------------------------------------------------------
- *  SPDX-FileCopyrightText: 2021-2025 Jens A. Koch
+/*------------------------------------------------------------------------------
+ *  SPDX-FileCopyrightText: 2021-2026 Jens A. Koch
  *  SPDX-License-Identifier: MIT
- *--------------------------------------------------------------------------------------------*/
+ *----------------------------------------------------------------------------*/
 
 import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache' // https://github.com/actions/toolkit/tree/main/packages/tool-cache

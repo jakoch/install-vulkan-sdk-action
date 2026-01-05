@@ -1,7 +1,7 @@
-/*---------------------------------------------------------------------------------------------
- *  SPDX-FileCopyrightText: 2021-2025 Jens A. Koch
+/*------------------------------------------------------------------------------
+ *  SPDX-FileCopyrightText: 2021-2026 Jens A. Koch
  *  SPDX-License-Identifier: MIT
- *--------------------------------------------------------------------------------------------*/
+ *----------------------------------------------------------------------------*/
 
 import * as core from '@actions/core'
 import * as http from './http'
@@ -26,7 +26,13 @@ export interface GithubRelease {
 /**
  * Get the latest Github Release as JSON.
  *
- * E.g. https://api.github.com/repos/jakoch/rasterizers/releases/latest
+ * This is a get request to an GITHUB REST API endpoint,
+ * which returns the latest release of a repository..
+ * It counts toward the GITHUB API rate-limit.
+ *
+ * This function supports authentication via a GITHUB_TOKEN env variable.
+ * If no token is provided, it will issue an unauthenticated request.
+ * This may lead to hitting rate-limits quickly.
  *
  * @export
  * @param {string} owner - The GitHub owner (username or organization).
@@ -35,10 +41,22 @@ export interface GithubRelease {
  */
 export const getLatestRelease = async (owner: string, repo: string): Promise<GithubRelease | null> => {
   const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`
-  const response = await http.client.getJson<GithubRelease>(url)
+
+  let response: { result: GithubRelease | null }
+
+  if (!process.env.GITHUB_TOKEN) {
+    core.info('To avoid hitting GitHub API rate limits, please set a GITHUB_TOKEN in your environment.')
+    response = await http.client.getJson<GithubRelease>(url)
+  } else {
+    // biome-ignore lint: lint/style/useNamingConvention: This object property name part should be in camelCase.
+    const headers = process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}
+    response = await http.client.getJson<GithubRelease>(url, headers)
+  }
+
   if (!response.result) {
     throw new Error(`Unable to retrieve the latest release versions from '${url}'`)
   }
+
   return response.result
 }
 

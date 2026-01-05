@@ -1,7 +1,7 @@
-/*---------------------------------------------------------------------------------------------
- *  SPDX-FileCopyrightText: 2021-2025 Jens A. Koch
+/*-----------------------------------------------------------------------------
+ *  SPDX-FileCopyrightText: 2021-2026 Jens A. Koch
  *  SPDX-License-Identifier: MIT
- *--------------------------------------------------------------------------------------------*/
+ *----------------------------------------------------------------------------*/
 
 import { getLatestVersionsJson, __resetLatestVersionsJsonCacheForTests } from '../src/versions_rasterizers'
 import * as github from '../src/github'

@@ -11,9 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.3.0] - 2026-05-01
+
+### Added
+- Added caching to installer_swiftshader and installer_lavapipe, [#492](https://github.com/jakoch/install-vulkan-sdk-action/issues/492)
+
+### Changed
+- The method github.getLatestRelease() was changed to also allow API Auth using
+  GITHUB_TOKEN and avoid hitting the rate-limit. The method will now work with
+  and without TOKEN auth. [#544](https://github.com/jakoch/install-vulkan-sdk-action/issues/544)
+
 ## [1.2.8] - 2025-10-31
 
-## Added
+### Added
 - Added `install_runtime_only`, which allows the user to only install the Vulkan Runtime Components
   without installing the full Vulkan SDK, [#530](https://github.com/jakoch/install-vulkan-sdk-action/issues/530)
   This flag implicitly sets `install_runtime` to `true`.
@@ -22,12 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.7] - 2025-10-13
 
-## Fixed
+### Fixed
 - Updated workflow, because lowest available version is 1.3.268.0 (all older version are removed)
 
 ## [1.2.6] - 2025-09-22
 
-## Fixed
+### Fixed
 - Updated `getCacheKeys` function to remove the installation path parameter.
 - Modified `getVulkanSdk` to align with the new `getCacheKeys` signature.
 - Adjusted Vulkan runtime installation calls to match updated parameters.
@@ -178,7 +188,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Section for Reference Links -->
 
-[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.8...HEAD
+[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.8...v1.3.0
 [1.2.8]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.7...v1.2.8
 [1.2.7]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.5...v1.2.6

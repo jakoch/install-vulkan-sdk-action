@@ -1,13 +1,18 @@
-import { installSwiftShader, getDownloadUrl, extract } from '../src/installer_swiftshader'
+/*---------------------------------------------------------------------------------------------
+ *  SPDX-FileCopyrightText: 2021-2026 Jens A. Koch
+ *  SPDX-License-Identifier: MIT
+ *--------------------------------------------------------------------------------------------*/
+
+import { installSwiftShader, getLatestVersion } from '../src/installer_swiftshader'
 import * as tc from '@actions/tool-cache'
 import * as versionsRasterizers from '../src/versions_rasterizers'
 import * as http from '../src/http'
+import * as core from '@actions/core' // Import @actions/core for mocking
 import * as errors from '../src/errors'
 
 jest.mock('@actions/tool-cache')
 jest.mock('../src/versions_rasterizers')
 jest.mock('../src/http')
-jest.mock('../src/errors')
 
 describe('installer_swiftshader', () => {
   afterEach(() => {
@@ -30,16 +35,77 @@ describe('installer_swiftshader', () => {
       })
       jest.spyOn(http, 'isDownloadable').mockResolvedValue(undefined)
 
-      const result = await installSwiftShader(mockInstallPath)
+      const result = await installSwiftShader(mockInstallPath, false)
 
       expect(tc.downloadTool).toHaveBeenCalledWith(mockDownloadUrl)
       expect(tc.extractZip).toHaveBeenCalledWith(mockArchivePath, mockInstallPath)
       expect(result).toBe(mockInstallPath)
     })
+
+    it('should return cached path when useCache is true and cache is found', async () => {
+      const mockDownloadUrl = 'https://example.com/swiftshader.zip'
+      jest.spyOn(versionsRasterizers, 'getLatestVersionsJson').mockResolvedValue({
+        latest: {
+          'swiftshader-win64': { version: '4.4.4', tag: 'v4.4.4', url: mockDownloadUrl },
+          'lavapipe-win64': { version: '1.0.0', tag: 'v1.0.0', url: 'https://example.com/lavapipe.zip' }
+        }
+      })
+
+      jest.spyOn(tc, 'find').mockReturnValue('/cached/swiftshader')
+
+      const result = await installSwiftShader('/dest', true)
+
+      expect(tc.find).toHaveBeenCalledWith('swiftshader', '4.4.4')
+      expect(result).toBe('/cached/swiftshader')
+    })
+
+    it('should cache the extracted directory when useCache is true', async () => {
+      const mockDownloadUrl = 'https://example.com/swiftshader.zip'
+      const mockArchivePath = '/path/to/archive.zip'
+      const mockExtractedPath = '/path/to/extracted'
+      const mockCachePath = '/path/to/cached'
+
+      jest.spyOn(versionsRasterizers, 'getLatestVersionsJson').mockResolvedValue({
+        latest: {
+          'swiftshader-win64': { version: '5.5.5', tag: 'v5.5.5', url: mockDownloadUrl },
+          'lavapipe-win64': { version: '1.0.0', tag: 'v1.0.0', url: 'https://example.com/lavapipe.zip' }
+        }
+      })
+
+      jest.spyOn(tc, 'find').mockReturnValue('')
+      jest.spyOn(tc, 'downloadTool').mockResolvedValue(mockArchivePath)
+      jest.spyOn(tc, 'extractZip').mockResolvedValue(mockExtractedPath)
+      jest.spyOn(tc, 'cacheDir').mockResolvedValue(mockCachePath)
+      jest.spyOn(http, 'isDownloadable').mockResolvedValue(undefined)
+
+      const result = await installSwiftShader('/dest', true)
+
+      expect(tc.cacheDir).toHaveBeenCalledWith(mockExtractedPath, 'swiftshader', '5.5.5')
+      expect(result).toBe(mockCachePath)
+    })
+
+    it('should call errors.handleError when isDownloadable throws', async () => {
+      const mockDownloadUrl = 'https://example.com/swiftshader.zip'
+      jest.spyOn(versionsRasterizers, 'getLatestVersionsJson').mockResolvedValue({
+        latest: {
+          'swiftshader-win64': { version: '6.6.6', tag: 'v6.6.6', url: mockDownloadUrl },
+          'lavapipe-win64': { version: '1.0.0', tag: 'v1.0.0', url: 'https://example.com/lavapipe.zip' }
+        }
+      })
+
+      jest.spyOn(tc, 'find').mockReturnValue('')
+      const err = new Error('not downloadable')
+      const spyHandle = jest.spyOn(errors, 'handleError').mockImplementation(jest.fn())
+      jest.spyOn(http, 'isDownloadable').mockRejectedValue(err)
+
+      await expect(installSwiftShader('/dest', false)).rejects.toThrow(err)
+      expect(spyHandle).toHaveBeenCalled()
+      spyHandle.mockRestore()
+    })
   })
 
-  describe('getDownloadUrl', () => {
-    it('should return the download URL for the latest SwiftShader library', async () => {
+  describe('getLatestVersion', () => {
+    it('should return the download URL and version for the latest SwiftShader library', async () => {
       const mockDownloadUrl = 'https://example.com/swiftshader.zip'
       jest.spyOn(versionsRasterizers, 'getLatestVersionsJson').mockResolvedValue({
         latest: {
@@ -47,40 +113,29 @@ describe('installer_swiftshader', () => {
           'lavapipe-win64': { version: '1.0.0', tag: 'v1.0.0', url: 'https://example.com/lavapipe.zip' }
         }
       })
-      jest.spyOn(http, 'isDownloadable').mockResolvedValue(undefined)
 
-      const result = await getDownloadUrl()
+      const result = await getLatestVersion()
 
-      expect(result).toBe(mockDownloadUrl)
-      expect(http.isDownloadable).toHaveBeenCalledWith('SwiftShader', '1.0.0', mockDownloadUrl)
+      expect(result.url).toBe(mockDownloadUrl)
+      expect(result.version).toBe('1.0.0')
     })
 
-    it('should handle errors when download URL is not found', async () => {
+    it('should log an error when download URL or version is missing', async () => {
       jest.spyOn(versionsRasterizers, 'getLatestVersionsJson').mockResolvedValue({
         latest: {
-          'swiftshader-win64': { version: '1.0.0', tag: 'v1.0.0', url: '' }, // Simulate missing URL
+          'swiftshader-win64': { version: '', tag: '', url: '' }, // Simulate missing info
           'lavapipe-win64': { version: '1.0.0', tag: 'v1.0.0', url: 'https://example.com/lavapipe.zip' }
         }
       })
-      const mockHandleError = jest.spyOn(errors, 'handleError').mockImplementation()
 
-      await expect(getDownloadUrl()).rejects.toThrow('SwiftShader download URL not found.')
-      expect(mockHandleError).toHaveBeenCalled()
-    })
-  })
+      const spyError = jest.spyOn(core, 'error').mockImplementation(jest.fn())
 
-  describe('extract', () => {
-    it('should extract the ZIP archive to the specified destination', async () => {
-      const mockArchivePath = '/path/to/archive.zip'
-      const mockDestination = '/path/to/destination'
-      const mockExtractedPath = '/path/to/extracted'
+      const result = await getLatestVersion()
 
-      jest.spyOn(tc, 'extractZip').mockResolvedValue(mockExtractedPath)
-
-      const result = await extract(mockArchivePath, mockDestination)
-
-      expect(tc.extractZip).toHaveBeenCalledWith(mockArchivePath, mockDestination)
-      expect(result).toBe(mockExtractedPath)
+      expect(spyError).toHaveBeenCalled()
+      expect(result.url).toBe('')
+      expect(result.version).toBe('')
+      spyError.mockRestore()
     })
   })
 })

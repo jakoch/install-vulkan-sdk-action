@@ -1,59 +1,69 @@
-/*---------------------------------------------------------------------------------------------
- *  SPDX-FileCopyrightText: 2021-2025 Jens A. Koch
+/*-----------------------------------------------------------------------------
+ *  SPDX-FileCopyrightText: 2021-2026 Jens A. Koch
  *  SPDX-License-Identifier: MIT
- *--------------------------------------------------------------------------------------------*/
+ *----------------------------------------------------------------------------*/
 
-import * as tc from '@actions/tool-cache'
-import * as versionsRasterizers from './versions_rasterizers'
 import * as http from './http'
 import * as errors from './errors'
+import * as core from '@actions/core'
+import * as tc from '@actions/tool-cache'
+import * as versionsRasterizers from './versions_rasterizers'
 
 /**
  * Install the SwiftShader library.
  *
  * @export
  * @param {string} destination - The destination path for the SwiftShader library.
+ * @param {boolean} useCache - Whether to use a cached SwiftShader library, if available.
  */
-export async function installSwiftShader(destination: string): Promise<string> {
-  let installPath = ''
+export async function installSwiftShader(destination: string, useCache: boolean): Promise<string> {
+  // Get latest version info
+  const { url: downloadUrl, version } = await getLatestVersion()
 
-  const downloadUrl = await getDownloadUrl()
-  const archivePath = await tc.downloadTool(downloadUrl)
-  installPath = await extract(archivePath, destination)
+  // Check cache first
+  if (useCache) {
+    const cachedPath = tc.find('swiftshader', version)
+    if (cachedPath) {
+      core.info(`Found SwiftShader in cache at ${cachedPath}`)
+      return cachedPath
+    }
+  }
 
-  return installPath
-}
-
-/**
- * Get the download URL for the latest SwiftShader library.
- *
- * @export
- * @returns {Promise<string>} - The download URL for the latest SwiftShader library.
- */
-export async function getDownloadUrl(): Promise<string> {
-  const latestVersions = await versionsRasterizers.getLatestVersionsJson()
-  const downloadUrl = latestVersions.latest['swiftshader-win64']?.url
-  const version = latestVersions.latest['swiftshader-win64'].version
-
+  // Ensure the URL is valid
   try {
     if (!downloadUrl) throw new Error('SwiftShader download URL not found.')
     await http.isDownloadable('SwiftShader', version, downloadUrl)
   } catch (error) {
     errors.handleError(error as Error)
-    throw error // Rethrow the error so it can be caught in tests
+    throw error // Rethrow error, so it can be caught in tests
   }
 
-  return downloadUrl
+  // Download and extract
+  const archivePath = await tc.downloadTool(downloadUrl)
+  const extractedPath = await tc.extractZip(archivePath, destination)
+
+  // Cache the extracted directory
+  if (useCache) {
+    const installPath = await tc.cacheDir(extractedPath, 'swiftshader', version)
+    core.info(`SwiftShader cached at ${installPath}`)
+    return installPath
+  }
+
+  return extractedPath
 }
 
 /**
- * Extract the SwiftShader library from the ZIP archive.
+ * Get the latest SwiftShader version info.
  *
- * @export
- * @param {string} archivePath - The path to the SwiftShader archive.
- * @param {string} destination - The destination path for the library.
- * @returns {Promise<string>} - The path to the extracted library.
+ * @returns {Promise<{ url: string; version: string }>} - The download URL and version.
  */
-export async function extract(archivePath: string, destination: string): Promise<string> {
-  return await tc.extractZip(archivePath, destination)
+export async function getLatestVersion(): Promise<{ url: string; version: string }> {
+  const latestVersions = await versionsRasterizers.getLatestVersionsJson()
+  const info = latestVersions.latest['swiftshader-win64']
+
+  if (!info?.url || !info?.version) {
+    core.error('SwiftShader download URL or version not found.')
+  }
+
+  return { url: info.url, version: info.version }
 }
