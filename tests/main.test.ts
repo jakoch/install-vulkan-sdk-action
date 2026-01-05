@@ -17,6 +17,7 @@ import { env } from 'process'
 
 jest.mock('../src/downloader')
 jest.mock('../src/installer_vulkan')
+jest.mock('../src/installer_lavapipe')
 jest.mock('../src/installer_swiftshader')
 jest.mock('../src/versions_vulkan')
 jest.mock('../src/inputs')
@@ -27,6 +28,7 @@ jest.mock('@actions/core')
 // Import mocked modules
 import * as downloader from '../src/downloader'
 import * as installer_vulkan from '../src/installer_vulkan'
+import * as installer_lavapipe from '../src/installer_lavapipe'
 import * as installer_swiftshader from '../src/installer_swiftshader'
 import * as platform from '../src/platform'
 import * as core from '@actions/core'
@@ -429,9 +431,9 @@ describe('run', () => {
     ;(installer_vulkan.verifyInstallationOfSdk as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfSdk>).mockReturnValue(true)
 
     // Mock Lavapipe installer
-    jest.doMock('../src/installer_lavapipe', () => ({
-      installLavapipe: jest.fn().mockResolvedValue('/fake/lavapipe/path')
-    }))
+    ;(installer_lavapipe.installLavapipe as jest.MockedFunction<
+      typeof installer_lavapipe.installLavapipe
+    >).mockResolvedValue('/fake/lavapipe/path')
 
     // Mock platform
     Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
