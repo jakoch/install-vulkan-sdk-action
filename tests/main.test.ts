@@ -132,7 +132,8 @@ describe('run', () => {
       installSwiftshader: false,
       installLavapipe: false,
       swiftshaderDestination: '',
-      lavapipeDestination: ''
+      lavapipeDestination: '',
+      githubToken: ''
     }
     ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
 
@@ -190,7 +191,8 @@ describe('run', () => {
       installSwiftshader: false,
       installLavapipe: false,
       swiftshaderDestination: '',
-      lavapipeDestination: ''
+      lavapipeDestination: '',
+      githubToken: ''
     }
     ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
 
@@ -239,7 +241,8 @@ describe('run', () => {
       installSwiftshader: true,
       installLavapipe: false,
       swiftshaderDestination: '/fake/swiftshader',
-      lavapipeDestination: ''
+      lavapipeDestination: '',
+      githubToken: ''
     }
     ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
 
@@ -305,7 +308,8 @@ describe('run', () => {
       installSwiftshader: false,
       installLavapipe: false,
       swiftshaderDestination: '',
-      lavapipeDestination: ''
+      lavapipeDestination: '',
+      githubToken: ''
     }
     ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
 
@@ -362,7 +366,8 @@ describe('run', () => {
       installSwiftshader: false,
       installLavapipe: false,
       swiftshaderDestination: '',
-      lavapipeDestination: ''
+      lavapipeDestination: '',
+      githubToken: ''
     }
     ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
 
@@ -415,7 +420,8 @@ describe('run', () => {
       installSwiftshader: false,
       installLavapipe: true,
       swiftshaderDestination: '',
-      lavapipeDestination: '/fake/lavapipe'
+      lavapipeDestination: '/fake/lavapipe',
+      githubToken: ''
     }
     ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
 
@@ -466,7 +472,8 @@ describe('run', () => {
       installSwiftshader: false,
       installLavapipe: false,
       swiftshaderDestination: '',
-      lavapipeDestination: ''
+      lavapipeDestination: '',
+      githubToken: ''
     }
     ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
 
@@ -509,7 +516,8 @@ describe('run', () => {
       installSwiftshader: false,
       installLavapipe: false,
       swiftshaderDestination: '',
-      lavapipeDestination: ''
+      lavapipeDestination: '',
+      githubToken: ''
     }
     ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
 

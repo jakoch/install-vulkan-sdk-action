@@ -14,6 +14,7 @@ import * as installerSwiftshader from './installer_swiftshader'
 import * as installerLavapipe from './installer_lavapipe'
 import * as platform from './platform'
 import * as versionsVulkan from './versions_vulkan'
+import { githubTokenStore } from './github'
 
 /**
  * Get Cache Keys
@@ -126,6 +127,13 @@ async function getVulkanSdk(
 export async function run(): Promise<void> {
   try {
     const inputs: input.Inputs = await input.getInputs()
+
+    // If the workflow provided a github_token input, store it in the token store
+    // so modules can use it without passing it around.
+    if (inputs.githubToken && inputs.githubToken !== '') {
+      githubTokenStore.setToken(inputs.githubToken)
+      core.info('Using github_token to authenticate GitHub API requests.')
+    }
 
     const version = await versionsVulkan.resolveVersion(inputs.version)
 
@@ -262,7 +270,9 @@ export async function run(): Promise<void> {
       const icdList = icdFiles.join(';')
       core.exportVariable('VK_DRIVER_FILES', icdList)
       core.info(`✔️ [ENV] Set VK_DRIVER_FILES -> "${icdList}".`)
-      pathEntries.forEach(p => core.addPath(p))
+      pathEntries.forEach(p => {
+        core.addPath(p)
+      })
       core.info(`✔️ [PATH] Added rasterizer library paths to environment variable PATH.`)
     }
 

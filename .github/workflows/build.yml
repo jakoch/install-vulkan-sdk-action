@@ -95,6 +95,7 @@ jobs:
           install_runtime: true
           cache: false
           stripdown: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Show Env Vars and SDK folder (Linux)
         if: contains(matrix.config.OS, 'ubuntu')
@@ -171,6 +172,7 @@ jobs:
           install_runtime: true
           cache: false
           stripdown: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Show Env Vars and SDK folder (Linux)
         if: contains(matrix.config.OS, 'ubuntu')
@@ -245,6 +247,7 @@ jobs:
           install_swiftshader: ${{ matrix.rasterizer == 'swiftshader' }}
           # Lavapipe. Default: latest version.
           install_lavapipe: ${{ matrix.rasterizer == 'lavapipe' }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: List Files
         if: contains(matrix.config.OS, 'windows')
@@ -345,6 +348,7 @@ jobs:
           cache: false
           # Lavapipe. Default: latest version.
           install_lavapipe: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Show Env Vars and SDK folder (Windows)
         if: contains(matrix.config.OS, 'windows')

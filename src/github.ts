@@ -24,6 +24,25 @@ export interface GithubRelease {
 }
 
 /**
+ * Singleton to store the GitHub token so modules don't need to pass it around.
+ */
+class GithubTokenStore {
+  private token?: string
+
+  setToken(token: string) {
+    if (this.token) return
+    this.token = token
+    core.setSecret(this.token)
+  }
+
+  getToken(): string | undefined {
+    return this.token
+  }
+}
+
+export const githubTokenStore = new GithubTokenStore()
+
+/**
  * Get the latest Github Release as JSON.
  *
  * This is a get request to an GITHUB REST API endpoint,
@@ -44,12 +63,16 @@ export const getLatestRelease = async (owner: string, repo: string): Promise<Git
 
   let response: { result: GithubRelease | null }
 
-  if (!process.env.GITHUB_TOKEN) {
-    core.info('To avoid hitting GitHub API rate limits, please set a GITHUB_TOKEN in your environment.')
+  const authToken = githubTokenStore.getToken()
+
+  if (!authToken) {
+    core.info(
+      'To avoid hitting GitHub API rate limits, please set github_token as action input or a GITHUB_TOKEN in your environment.'
+    )
     response = await http.client.getJson<GithubRelease>(url)
   } else {
     // biome-ignore lint: lint/style/useNamingConvention: This object property name part should be in camelCase.
-    const headers = process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}
+    const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {}
     response = await http.client.getJson<GithubRelease>(url, headers)
   }
 

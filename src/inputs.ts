@@ -29,6 +29,8 @@ export interface Inputs {
   // Lavapipe inputs
   installLavapipe: boolean
   lavapipeDestination: string
+  // GithubToken
+  githubToken: string
 }
 
 /**
@@ -63,6 +65,12 @@ export async function getInputs(): Promise<Inputs> {
   const inputLavapipeDestination = core.getInput('lavapipe_destination', { required: false })
   //const inputLavapipeVersion = core.getInput('Lavapipe_version', { required: false })
 
+  // Github token
+  // Prefer github_token input over GITHUB_TOKEN env variable
+  const inputGithubToken = core.getInput('github_token', { required: false }) || process.env.GITHUB_TOKEN || ''
+  // mask secret in logs
+  core.setSecret(inputGithubToken)
+
   const inputs = {
     // Vulkan SDK inputs
     version: await getInputVulkanVersion(inputVulkanVersion),
@@ -81,10 +89,16 @@ export async function getInputs(): Promise<Inputs> {
 
     // Lavapipe inputs
     installLavapipe: /true/i.test(inputInstallLavapipe),
-    lavapipeDestination: await getInputLavapipeDestination(inputLavapipeDestination)
+    lavapipeDestination: await getInputLavapipeDestination(inputLavapipeDestination),
     //LavapipeVersion: await getIputLavapipeVersion(inputLavapipeVersion),
     //LavapipeVersionExplicit: inputLavapipeVersion !== '' // used for implicit conditions
+
+    // Github token
+    githubToken: inputGithubToken
   }
+
+  // mask secret in logs
+  core.setSecret(inputs.githubToken)
 
   // Apply implicit conditions
 

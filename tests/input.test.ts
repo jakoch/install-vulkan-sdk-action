@@ -28,16 +28,18 @@ describe('getInputs', () => {
         destination: '/some/path',
         install_runtime: 'true',
         install_runtime_only: 'false',
-        cache: 'false',
+        use_cache: 'false',
         // invalid components are filtered out, so the expected array is empty
         optional_components: 'someInvalidComponent,anotherInvalidComponent',
         stripdown: 'false',
         // swiftshader
-        installSwiftshader: 'false',
-        swiftshaderDestination: `${platform.HOME_DIR}/swiftshader`,
+        install_swiftshader: 'false',
+        swiftshader_destination: `${platform.HOME_DIR}/swiftshader`,
         // lavapipe
-        installLavapipe: 'false',
-        lavapipeDestination: `${platform.HOME_DIR}/lavapipe`
+        install_lavapipe: 'false',
+        lavapipe_destination: `${platform.HOME_DIR}/lavapipe`,
+        // GithubToken
+        github_token: ''
       }
       return mockInputs[name] || ''
     })
@@ -57,7 +59,9 @@ describe('getInputs', () => {
       swiftshaderDestination: `${platform.HOME_DIR}/swiftshader`,
       // lavapipe
       installLavapipe: false,
-      lavapipeDestination: `${platform.HOME_DIR}/lavapipe`
+      lavapipeDestination: `${platform.HOME_DIR}/lavapipe`,
+      // GithubToken
+      githubToken: ''
     })
   })
 
@@ -74,11 +78,11 @@ describe('getInputs', () => {
         optional_components: '',
         stripdown: 'false',
         // swiftshader
-        installSwiftshader: 'false',
-        swiftshaderDestination: `${platform.HOME_DIR}/swiftshader`,
+        install_swiftshader: 'false',
+        swiftshader_destination: `${platform.HOME_DIR}/swiftshader`,
         // lavapipe
-        installLavapipe: 'false',
-        lavapipeDestination: `${platform.HOME_DIR}/lavapipe`
+        install_lavapipe: 'false',
+        lavapipe_destination: `${platform.HOME_DIR}/lavapipe`
       }
       return mockInputs[name] || ''
     })
@@ -88,6 +92,7 @@ describe('getInputs', () => {
       // vulkan
       version: '1.4.328.1',
       destination: '/some/path',
+      githubToken: '',
       installRuntime: true, // should be true because installRuntimeOnly is true
       installRuntimeOnly: true,
       useCache: false,
@@ -266,7 +271,8 @@ describe('getInputDestination', () => {
         install_swiftshader: 'false',
         swiftshader_destination: '',
         install_Lavapipe: 'false',
-        lavapipe_destination: ''
+        lavapipe_destination: '',
+        github_token: ''
       }
       return map[name] || ''
     })
