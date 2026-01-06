@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
-## [1.3.0] - 2026-05-01
+## [1.3.0] - 2026-06-01
 
 ### Added
 - Added caching to installer_swiftshader and installer_lavapipe, [#492](https://github.com/jakoch/install-vulkan-sdk-action/issues/492)
