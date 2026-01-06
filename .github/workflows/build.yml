@@ -210,7 +210,7 @@ jobs:
 # ---------------------------------------------------------------------------------------
 
     # install latest version of vulkan sdk and both rasterizers on windows
-    name: Install rasterizers on ${{ matrix.config.OS }}
+    name: Install rasterizer ${{ matrix.rasterizer }} on ${{ matrix.config.OS }}
     runs-on: ${{ matrix.config.OS }}
 
     strategy:
@@ -257,7 +257,17 @@ jobs:
             dir /s C:\Lavapipe
           )
 
-      # Generate vulkaninfo profiles for both rasterizers (lavapipe_profile.json, swiftshader_profile.json).
+      # Generate vulkaninfo profile the rasterizer
+      # Register both drivers via ICD (Installable Client Driver) files in the Windows Registry before running vulkaninfoSDK.exe.
+      # The steps are splitted to easily access the "Output Device Name from Profile" in the CI logs.
+
+      - name: Register Driver in Registry (using VK_DRIVER_FILES env var)
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "$env:VK_DRIVER_FILES" /t REG_DWORD /d 0 /f
+
+      # Generate vulkaninfo profiles for both rasterizers (profile.json).
       # Register both drivers via ICD (Installable Client Driver) files in the Windows Registry before running vulkaninfoSDK.exe.
       # The steps are splitted to easily access the "Output Device Name from Profile" in the CI logs.
 
@@ -291,6 +301,7 @@ jobs:
           echo $env:PATH
           echo $env:VULKAN_VERSION
           echo $env:VULKAN_SDK
+          echo $env:VK_DRIVER_FILES
           Get-ChildItem -File -Recurse
           $folderSizeMB = (Get-ChildItem -File -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
           "Folder size: {0:N2} MB" -f $folderSizeMB
@@ -342,6 +353,7 @@ jobs:
           echo $env:PATH
           echo $env:VULKAN_VERSION
           echo $env:VULKAN_SDK
+          echo $env:VK_DRIVER_FILES
           Get-ChildItem -File -Recurse
           $folderSizeMB = (Get-ChildItem -File -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
           "Folder size: {0:N2} MB" -f $folderSizeMB
@@ -353,6 +365,16 @@ jobs:
           if exist C:\Lavapipe (
             dir /s C:\Lavapipe
           )
+
+      # Generate vulkaninfo profile the rasterizer
+      # Register both drivers via ICD (Installable Client Driver) files in the Windows Registry before running vulkaninfoSDK.exe.
+      # The steps are splitted to easily access the "Output Device Name from Profile" in the CI logs.
+
+      - name: Register Driver in Registry (using VK_DRIVER_FILES env var)
+        if: contains(matrix.config.OS, 'windows')
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "$env:VK_DRIVER_FILES" /t REG_DWORD /d 0 /f
 
       # And of course the file is named vulkaninfoSDK.exe when from the SDK
       # and named vulkaninfo.exe when from the runtime only package.
