@@ -1,5 +1,14 @@
+import { jest } from '@jest/globals';
+import * as path from 'path'
+import { env } from 'process'
+
 // Global Jest setup to mock the HTTP client implementation.
 // So no real network is used.
+
+env.RUNNER_TOOL_CACHE = path.join(__dirname, '../tmp/runner_tools')
+env.RUNNER_TEMP = path.join(__dirname, '../tmp/runner_tmpdir')
+
+jest.setTimeout(30000) // 30 second timeout
 
 // The '@actions/http-client' module is mocked,
 // so that when `src/http.ts` constructs the `client` at import time,

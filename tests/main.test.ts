@@ -3,17 +3,10 @@
  *  SPDX-License-Identifier: MIT
  *--------------------------------------------------------------------------------------------*/
 
-//import * as io from '@actions/io'
-//import { HttpClient } from '@actions/http-client'
-//import { getPlatform } from '../src/platform'
-//import * as downloader from '../src/downloader'
-//import * as installer_vulkan from '../src/installer_vulkan'
 import * as inputs from '../src/inputs'
 import * as main from '../src/main'
 import * as versionsVulkan from '../src/versions_vulkan'
-import * as path from 'path'
 import { expect, test } from '@jest/globals'
-import { env } from 'process'
 
 jest.mock('../src/downloader')
 jest.mock('../src/installer_vulkan')
@@ -33,11 +26,6 @@ import * as installer_swiftshader from '../src/installer_swiftshader'
 import * as platform from '../src/platform'
 import * as core from '@actions/core'
 import * as cache from '@actions/cache'
-
-env.RUNNER_TOOL_CACHE = path.join(__dirname, '../tmp/runner_tools')
-env.RUNNER_TEMP = path.join(__dirname, '../tmp/runner_tmpdir')
-
-jest.setTimeout(60000) // 60 second timeout
 
 describe('inputs', () => {
   /*test('GetInputs', async () => {
@@ -259,6 +247,9 @@ describe('run', () => {
 
     // Mock SwiftShader installer
     ;(installer_swiftshader.installSwiftShader as jest.MockedFunction<typeof installer_swiftshader.installSwiftShader>).mockResolvedValue('/fake/swiftshader/path')
+    ;(installer_swiftshader.setupSwiftshader as jest.MockedFunction<typeof installer_swiftshader.setupSwiftshader>).mockReturnValue(
+      ['/fake/swiftshader/icd.json']
+    )
 
     // Mock platform
     Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
@@ -437,9 +428,10 @@ describe('run', () => {
     ;(installer_vulkan.verifyInstallationOfSdk as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfSdk>).mockReturnValue(true)
 
     // Mock Lavapipe installer
-    ;(installer_lavapipe.installLavapipe as jest.MockedFunction<
-      typeof installer_lavapipe.installLavapipe
-    >).mockResolvedValue('/fake/lavapipe/path')
+    ;(installer_lavapipe.installLavapipe as jest.MockedFunction<typeof installer_lavapipe.installLavapipe>).mockResolvedValue('/fake/lavapipe/path')
+    ;(installer_lavapipe.setupLavapipe as jest.MockedFunction<typeof installer_lavapipe.setupLavapipe>).mockReturnValue([
+      '/fake/lavapipe/icd.json'
+    ])
 
     // Mock platform
     Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
