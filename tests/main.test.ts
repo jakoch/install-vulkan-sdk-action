@@ -247,9 +247,10 @@ describe('run', () => {
 
     // Mock SwiftShader installer
     ;(installer_swiftshader.installSwiftShader as jest.MockedFunction<typeof installer_swiftshader.installSwiftShader>).mockResolvedValue('/fake/swiftshader/path')
-    ;(installer_swiftshader.setupSwiftshader as jest.MockedFunction<typeof installer_swiftshader.setupSwiftshader>).mockReturnValue(
-      ['/fake/swiftshader/icd.json']
-    )
+    ;(installer_swiftshader.setupSwiftshader as jest.MockedFunction<typeof installer_swiftshader.setupSwiftshader>).mockReturnValue({
+      icd: ['/fake/swiftshader/icd.json'],
+      bin_path: ['/fake/swiftshader'],
+    })
 
     // Mock platform
     Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
@@ -429,9 +430,10 @@ describe('run', () => {
 
     // Mock Lavapipe installer
     ;(installer_lavapipe.installLavapipe as jest.MockedFunction<typeof installer_lavapipe.installLavapipe>).mockResolvedValue('/fake/lavapipe/path')
-    ;(installer_lavapipe.setupLavapipe as jest.MockedFunction<typeof installer_lavapipe.setupLavapipe>).mockReturnValue([
-      '/fake/lavapipe/icd.json'
-    ])
+    ;(installer_lavapipe.setupLavapipe as jest.MockedFunction<typeof installer_lavapipe.setupLavapipe>).mockReturnValue({
+      icd: ['/fake/lavapipe/icd.json'],
+      bin_path: ['/fake/lavapipe/bin'],
+    })
 
     // Mock platform
     Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
