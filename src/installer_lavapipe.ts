@@ -74,11 +74,11 @@ export async function getLatestVersion(): Promise<{ url: string; version: string
  *
  * @export
  * @param {string} installPath
- * @returns {{ icd: string[]; bin_path: string[] }} path to the ICD files and path to add to `$PATH`
+ * @returns {{ icd: string[]; binPath: string[] }} path to the ICD files and path to add to `$PATH`
  */
-export function setupLavapipe(installPath: string): { icd: string[]; bin_path: string[] } {
+export function setupLavapipe(installPath: string): { icd: string[]; binPath: string[] } {
   return {
     icd: [path.normalize(`${installPath}/share/vulkan/icd.d/lvp_icd.x86_64.json`)],
-    bin_path: [path.normalize(`${installPath}/bin`)]
+    binPath: [path.normalize(`${installPath}/bin`)]
   }
 }

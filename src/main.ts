@@ -244,7 +244,7 @@ export async function run(): Promise<void> {
         inputs.useCache
       )
       const swiftshaderPaths = installerSwiftshader.setupSwiftshader(swiftshaderInstallPath)
-      pathEntries.push(...swiftshaderPaths.bin_path)
+      pathEntries.push(...swiftshaderPaths.binPath)
       icdFiles.push(...swiftshaderPaths.icd)
       core.info(`ℹ️ [INFO] Path to SwiftShader: ${swiftshaderInstallPath}`)
     }
@@ -257,7 +257,7 @@ export async function run(): Promise<void> {
       core.info(`🚀 Installing Lavapipe library...`)
       const lavapipeInstallPath = await installerLavapipe.installLavapipe(inputs.lavapipeDestination, inputs.useCache)
       const lavapipePaths = installerLavapipe.setupLavapipe(lavapipeInstallPath)
-      pathEntries.push(...lavapipePaths.bin_path)
+      pathEntries.push(...lavapipePaths.binPath)
       icdFiles.push(...lavapipePaths.icd)
       core.info(`ℹ️ [INFO] Path to Lavapipe: ${lavapipeInstallPath}`)
     }

@@ -249,7 +249,7 @@ describe('run', () => {
     ;(installer_swiftshader.installSwiftShader as jest.MockedFunction<typeof installer_swiftshader.installSwiftShader>).mockResolvedValue('/fake/swiftshader/path')
     ;(installer_swiftshader.setupSwiftshader as jest.MockedFunction<typeof installer_swiftshader.setupSwiftshader>).mockReturnValue({
       icd: ['/fake/swiftshader/icd.json'],
-      bin_path: ['/fake/swiftshader'],
+      binPath: ['/fake/swiftshader'],
     })
 
     // Mock platform
@@ -432,7 +432,7 @@ describe('run', () => {
     ;(installer_lavapipe.installLavapipe as jest.MockedFunction<typeof installer_lavapipe.installLavapipe>).mockResolvedValue('/fake/lavapipe/path')
     ;(installer_lavapipe.setupLavapipe as jest.MockedFunction<typeof installer_lavapipe.setupLavapipe>).mockReturnValue({
       icd: ['/fake/lavapipe/icd.json'],
-      bin_path: ['/fake/lavapipe/bin'],
+      binPath: ['/fake/lavapipe/bin'],
     })
 
     // Mock platform

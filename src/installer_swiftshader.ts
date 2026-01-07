@@ -74,11 +74,11 @@ export async function getLatestVersion(): Promise<{ url: string; version: string
  *
  * @export
  * @param {string} installPath
- * @returns {{ icd: string[]; bin_path: string[] }} path to the ICD files and path to add to `$PATH`
+ * @returns {{ icd: string[]; binPath: string[] }} path to the ICD files and path to add to `$PATH`
  */
-export function setupSwiftshader(installPath: string): { icd: string[]; bin_path: string[] } {
+export function setupSwiftshader(installPath: string): { icd: string[]; binPath: string[] } {
   return {
     icd: [path.normalize(`${installPath}/vk_swiftshader_icd.json`)],
-    bin_path: [path.normalize(installPath)]
+    binPath: [path.normalize(installPath)]
   }
 }
