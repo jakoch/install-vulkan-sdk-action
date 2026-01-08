@@ -191,7 +191,7 @@ describe('installer_swiftshader', () => {
 
       setupSwiftshader('/fake/swiftshader')
 
-      expect(spyInfo).toHaveBeenCalledWith(expect.stringContaining('/fake/swiftshader/bin'))
+      expect(spyInfo).toHaveBeenCalledWith(expect.stringContaining('/fake/swiftshader'))
       expect(spyRegister).toHaveBeenCalledWith(expect.stringContaining('swiftshader_icd.json'))
 
       spyInfo.mockRestore()

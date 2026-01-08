@@ -273,6 +273,7 @@ jobs:
         if: contains(matrix.config.OS, 'windows')
         shell: pwsh
         run: |
+          $env:VK_LOADER_DEBUG = "error,warn,info"
           vulkaninfoSDK.exe -j -o profile.json
           Get-Content -Raw profile.json
 
@@ -384,6 +385,7 @@ jobs:
         run: |
           $vulkanPath = Join-Path $env:VULKAN_SDK $env:VULKAN_VERSION
           Set-Location "$vulkanPath\runtime\x64"
+          $env:VK_LOADER_DEBUG = "error,warn,info"
           .\vulkaninfo.exe -j -o profile.json
           Get-Content -Raw profile.json
 

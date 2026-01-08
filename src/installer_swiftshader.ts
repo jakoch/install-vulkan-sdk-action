@@ -94,9 +94,10 @@ export function verifyInstallation(installPath: string): boolean {
  * @param {string} installPath
  */
 export function setupSwiftshader(installPath: string) {
-  const binDir = path.normalize(`${installPath}/bin`)
+  // Note: All files are in the install folder (no subfolders like 'bin' etc.)
+  const binDir = path.normalize(`${installPath}`)
   core.info(`ℹ️ SwiftShader bin path: ${binDir}`)
 
-  const icdPath = path.normalize(`${installPath}/share/vulkan/icd.d/swiftshader_icd.json`)
+  const icdPath = path.normalize(`${installPath}/vk_swiftshader_icd.json`)
   registerDriverInWindowsRegistry(icdPath)
 }
