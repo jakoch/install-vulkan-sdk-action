@@ -477,34 +477,6 @@ export function verifyInstallationOfSdk(sdkInstallPath: string): boolean {
 }
 
 /**
- * Run the vulkaninfo command.
- *
- * Runs the "vulkaninfo --summary" command, if it exists.
- * and log the output in a collapsible section in the workflow logs.
- *
- * @param {string} vulkanInfoPath - The path to the "vulkaninfo" executable.
- */
-export function runVulkanInfo(vulkanInfoPath: string): void {
-  if (fs.existsSync(vulkanInfoPath)) {
-    core.startGroup(`Vulkan Info Summary`)
-    const runVulkanInfoCmd = `${vulkanInfoPath} --summary`
-    try {
-      const stdout: string = execSync(runVulkanInfoCmd).toString().trim()
-      process.stdout.write(stdout)
-    } catch (error) {
-      if (error instanceof Error) {
-        core.error(error.message)
-      } else {
-        core.error('An unknown error occurred while running vulkaninfo.')
-      }
-    }
-    core.endGroup()
-  } else {
-    core.warning(`vulkaninfo executable not found at path: ${vulkanInfoPath}`)
-  }
-}
-
-/**
  * Verify the installation of the Vulkan Runtime.
  *
  * @param {string} sdkRuntimePath - Path to the runtime folder, e.g. "C:\VulkanSDK\1.3.250.1\runtime".

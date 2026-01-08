@@ -317,24 +317,6 @@ describe('installer_vulkan', () => {
     spyWarn.mockRestore()
   })
 
-  it('runVulkanInfo should execute command and write stdout when present', () => {
-    // create a fake executable file
-    const fakeExe = path.join(tmpRoot, 'fake_vulkaninfo')
-    fs.writeFileSync(fakeExe, '')
-    // The file exists on disk, so runVulkanInfo should call execSync and write stdout.
-    ;(child.execSync as jest.Mock).mockImplementation(() => Buffer.from('summary output'))
-    const stdoutSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true)
-
-    installer.runVulkanInfo(fakeExe)
-
-    expect(child.execSync).toHaveBeenCalled()
-    // ensure the command included the --summary argument
-    expect((child.execSync as jest.Mock).mock.calls[0][0]).toBe(`${fakeExe} --summary`)
-    expect(stdoutSpy).toHaveBeenCalled()
-
-    stdoutSpy.mockRestore()
-  })
-
   it('verifyInstallationOfSdk returns true when vulkaninfo exists', () => {
     // simulate linux sdk layout
     Object.defineProperty(platform, 'IS_LINUX', { value: true, configurable: true })
@@ -456,16 +438,6 @@ describe('installer_vulkan', () => {
     expect(ok).toBeTruthy()
   })
 
-  it('runVulkanInfo logs warning when vulkaninfo not present', () => {
-    const spyWarn = jest.spyOn(require('@actions/core'), 'warning').mockImplementation(() => undefined)
-    const fakePath = '/nonexistent/vulkaninfo'
-    // pass a path that doesn't exist; no need to override fs.existsSync which
-    // can be read-only in some runtimes
-    installer.runVulkanInfo(fakePath)
-    expect(spyWarn).toHaveBeenCalled()
-    spyWarn.mockRestore()
-  })
-
   it('stripdownInstallationOfSdk deletes folders and files', () => {
     Object.defineProperty(platform, 'IS_WINDOWS', { value: true, configurable: true })
     const sdkPath = path.join(tmpRoot, 'strip_sdk')
@@ -513,36 +485,6 @@ describe('installer_vulkan', () => {
     fs.mkdirSync(dest, { recursive: true })
     const ret = await installer.installVulkanSdkMacZip('/tmp/fake313.zip', dest, '1.4.313.0', [])
     expect(ret).toBe(dest)
-  })
-
-  it('runVulkanInfo logs an error if execSync throws', () => {
-    const core = require('@actions/core')
-    const spyError = jest.spyOn(core, 'error').mockImplementation(() => undefined)
-
-    const fakeExe = path.join(tmpRoot, 'vulkaninfo_error')
-    fs.writeFileSync(fakeExe, '')
-    ;(child.execSync as jest.Mock).mockImplementation(() => {
-      throw new Error('exec failed')
-    })
-
-    installer.runVulkanInfo(fakeExe)
-    expect(spyError).toHaveBeenCalled()
-    spyError.mockRestore()
-  })
-
-  it('runVulkanInfo logs unknown error if execSync throws non-Error', () => {
-    const core = require('@actions/core')
-    const spyError = jest.spyOn(core, 'error').mockImplementation(() => undefined)
-
-    const fakeExe = path.join(tmpRoot, 'vulkaninfo_unknown_error')
-    fs.writeFileSync(fakeExe, '')
-    ;(child.execSync as jest.Mock).mockImplementation(() => {
-      throw 'string error'
-    })
-
-    installer.runVulkanInfo(fakeExe)
-    expect(spyError).toHaveBeenCalledWith('An unknown error occurred while running vulkaninfo.')
-    spyError.mockRestore()
   })
 
   it('stripdownInstallationOfSdk handles missing folders gracefully', () => {
