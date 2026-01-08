@@ -131,7 +131,6 @@ The following environment variables are set:
 | `VK_LAYER_PATH`     | String  | Linux only: The location of /share/vulkan/explicit_layer.d |
 | `LD_LIBRARY_PATH`   | String  | Linux only: path to vulkan library                         |
 | `DYLD_LIBRARY_PATH` | String  | Mac only: path to vulkan library                           |
-| `VK_DRIVER_FILES`   | String  | Location of the Vulkan driver files, semi-colon separated  |
 
 ## About Vulkan and the Vulkan SDK
 
@@ -285,7 +284,9 @@ To make SwiftShader available as a Vulkan renderer, you must register it as an I
 
 This is done by placing its JSON manifest file, which identifies the ICD and provides the path to the driver DLL, into the Windows registry.
 
-You can do this using PowerShell with the following command:
+The action performs this step for you. Manual registration is not required, but if needed,
+
+you can do it using PowerShell with the following command:
 
 ```
 reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\Swiftshader\vk_swiftshader_icd.json" /t REG_DWORD /d 0 /f
@@ -362,8 +363,9 @@ To make Lavapipe available as a Vulkan renderer, you must register it as an Inst
 
 This is done by placing its JSON manifest file, which identifies the ICD and provides the path to the driver DLL, into the Windows registry.
 
-You can do this using PowerShell with the following command:
+The action performs this step for you. Manual registration is not required, but if needed,
 
+you can do it using PowerShell with the following command:
 ```
 reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json" /t REG_DWORD /d 0 /f
 ```

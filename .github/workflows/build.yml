@@ -264,17 +264,10 @@ jobs:
             dir /s C:\Lavapipe
           )
 
-      # 1. Register driver(s) via ICD (Installable Client Driver) files in the
-      #    Windows Registry before running vulkaninfoSDK.exe.
+      # 1. Registering the ICD (Installable Client Driver) file in the Windows Registry was done by the action already.
       # 2. Generate vulkaninfo profile for the rasterizer
       # 3. Output Device Name from profile
       # The steps are splitted to easily access the "Output Device Name from Profile" in the CI logs.
-
-      - name: Register Driver in Registry (using VK_DRIVER_FILES env var)
-        if: contains(matrix.config.OS, 'windows')
-        shell: pwsh
-        run: |
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "$env:VK_DRIVER_FILES" /t REG_DWORD /d 0 /f
 
       - name: Run vulkaninfoSDK
         if: contains(matrix.config.OS, 'windows')
@@ -306,7 +299,6 @@ jobs:
           echo $env:PATH
           echo $env:VULKAN_VERSION
           echo $env:VULKAN_SDK
-          echo $env:VK_DRIVER_FILES
           Get-ChildItem -File -Recurse
           $folderSizeMB = (Get-ChildItem -File -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
           "Folder size: {0:N2} MB" -f $folderSizeMB
@@ -359,7 +351,6 @@ jobs:
           echo $env:PATH
           echo $env:VULKAN_VERSION
           echo $env:VULKAN_SDK
-          echo $env:VK_DRIVER_FILES
           Get-ChildItem -File -Recurse
           $folderSizeMB = (Get-ChildItem -File -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
           "Folder size: {0:N2} MB" -f $folderSizeMB
@@ -372,15 +363,16 @@ jobs:
             dir /s C:\Lavapipe
           )
 
-      # Generate vulkaninfo profile the rasterizer
-      # Register both drivers via ICD (Installable Client Driver) files in the Windows Registry before running vulkaninfoSDK.exe.
+      # 1. Registering the Lavapipe ICD (Installable Client Driver) in the Windows Registry was done by the action already.
+      # 2. Run vulkaninfoSDK.exe to generate profile
+      # 3. Output Device Name from profile
       # The steps are splitted to easily access the "Output Device Name from Profile" in the CI logs.
 
-      - name: Register Driver in Registry (using VK_DRIVER_FILES env var)
+      - name: Register Driver in Registry
         if: contains(matrix.config.OS, 'windows')
         shell: pwsh
         run: |
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "$env:VK_DRIVER_FILES" /t REG_DWORD /d 0 /f
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v "C:\lavapipe\share\vulkan\icd.d\lvp_icd.x86_64.json" /t REG_DWORD /d 0 /f
 
       # And of course the file is named vulkaninfoSDK.exe when from the SDK
       # and named vulkaninfo.exe when from the runtime only package.
