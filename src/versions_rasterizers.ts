@@ -33,7 +33,6 @@ let latestVersionsPromise: Promise<LatestVersions> | null = null
 /**
  * Get the latest versions.json file from the GitHub repository.
  *
- * @export
  * @returns {Promise<LatestVersions>} - The latest versions.json file.
  */
 export async function getLatestVersionsJson(): Promise<LatestVersions> {

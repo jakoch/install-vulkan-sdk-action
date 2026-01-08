@@ -62,7 +62,6 @@ interface AvailableVersions {
  *
  * @see AvailableVersions
  *
- * @export
  * @return {*}  {(Promise<AvailableVersions | null>)}
  */
 export const getAvailableVersions = async (): Promise<AvailableVersions | null> => {
@@ -80,7 +79,6 @@ export const getAvailableVersions = async (): Promise<AvailableVersions | null> 
  *
  * @see LatestVersionResponse
  *
- * @export
  * @return {*}  {(Promise<LatestVersionResponse | null>)}
  */
 export const getLatestVersions = async (): Promise<LatestVersionResponse | null> => {
@@ -126,7 +124,6 @@ export function getLatestVersionForPlatform(latestVersion: LatestVersionResponse
  *    a) a manually passed in version (pass-through)
  * or b) the automatically resolved latest version for the platform.
  *
- * @export
  * @param {string} version
  * @return {*}  {Promise<string>}
  */
@@ -158,7 +155,6 @@ export async function resolveVersion(version: string): Promise<string> {
  * If the current version is not found or is already the lowest,
  * return the same version.
  *
- * @export
  * @param {string} version - The current version.
  * @param {string[]} allVersions - The list of all available versions.
  * @return {*}  {Promise<string>} The next lower version.

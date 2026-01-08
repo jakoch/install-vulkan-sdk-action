@@ -15,7 +15,6 @@ import { registerDriverInWindowsRegistry } from './windows'
 /**
  * Install the SwiftShader library.
  *
- * @export
  * @param {string} destination - The destination path for the SwiftShader library.
  * @param {boolean} useCache - Whether to use a cached SwiftShader library, if available.
  */

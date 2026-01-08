@@ -53,7 +53,6 @@ export const githubTokenStore = new GithubTokenStore()
  * If no token is provided, it will issue an unauthenticated request.
  * This may lead to hitting rate-limits quickly.
  *
- * @export
  * @param {string} owner - The GitHub owner (username or organization).
  * @param {string} repo - The name of the GitHub repository.
  * @return {*}  {(Promise<GithubRelease | null>)}
@@ -86,7 +85,6 @@ export const getLatestRelease = async (owner: string, repo: string): Promise<Git
 /**
  * Get the latest version (= tag_name) of a repository from GitHub Releases.
  *
- * @export
  * @param {string} owner - The GitHub owner (username or organization).
  * @param {string} repo - The name of the GitHub repository.
  * @return {Promise<string | null>} The version number, or null if an error occurs.

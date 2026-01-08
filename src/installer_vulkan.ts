@@ -13,7 +13,6 @@ import * as platform from './platform'
 /**
  * Install the Vulkan SDK.
  *
- * @export
  * @param {string} sdk_path - Path to the Vulkan SDK installer executable.
  * @param {string} destination - Installation destination path.
  * @param {string} version - Vulkan SDK version.
@@ -57,7 +56,6 @@ export async function installVulkanSdk(
 /**
  * Install the Vulkan SDK on a Linux system.
  *
- * @export
  * @param {string} sdk_path - Path to the Vulkan SDK installer executable.
  * @param {string} destination - Installation destination path.
  * @param {string[]} optional_components - Array of optional components to install.
@@ -84,7 +82,6 @@ export async function installVulkanSdkLinux(
  * vulkan sdk was packaged as a .dmg (disk image) up to version 1.3.290.0.
  * vulkan sdk is packaged as a .zip since version 1.3.296.0.
  *
- * @export
  * @param {string} sdk_path - Path to the Vulkan SDK installer executable.
  * @param {string} destination - Installation destination path.
  * @param {string} version - Vulkan SDK version.
@@ -154,7 +151,6 @@ export async function installVulkanSdkMacDmg(
  * vulkan sdk was packaged as a .dmg (disk image) up to version 1.3.290.0.
  * vulkan sdk is packaged as a .zip since version 1.3.296.0.
  *
- * @export
  * @param {string} sdk_path - Path to the Vulkan SDK installer executable.
  * @param {string} destination - Installation destination path.
  * @param {string} version - Vulkan SDK version.
@@ -233,10 +229,9 @@ function getInstallerNameMac(version: string): string {
 /**
  * Install the Vulkan SDK on a Windows system.
  *
- * @export
- * @param {string} sdk_path- Path to the Vulkan SDK installer executable.
+ * @param {string} sdkPath- Path to the Vulkan SDK installer executable.
  * @param {string} destination - Installation destination path.
- * @param {string[]} optional_components - Array of optional components to install.
+ * @param {string[]} optionalComponents - Array of optional components to install.
  * @return {*}  {Promise<string>} - Installation path.
  */
 export async function installVulkanSdkWindows(
@@ -295,7 +290,6 @@ export async function installVulkanSdkWindows(
 /**
  * Install the Vulkan Runtime
  *
- * @export
  * @param {string} runtime_path
  * @param {string} destination
  * @param {string} version
@@ -346,7 +340,6 @@ export async function installVulkanRuntime(runtimePath: string, destination: str
  *   - C:\VulkanSDK\1.2.3.4\runtime\x64\vulkan-1.dll
  *   - C:\VulkanSDK\1.2.3.4\runtime\x64\vulkaninfo.exe
  *
- * @export
  * @param {string} destination
  * @return {*}  {string} - The installation path of the Vulkan Runtime.
  */
@@ -412,7 +405,6 @@ export function installVulkanRuntimeFromSdk(destination: string): string {
  *
  * @param {string} sdk_install_path - The installation path of the Vulkan SDK, e.g. "C:\VulkanSDK\1.2.3.4\x86_64".
  * @return {*}  {string}
- * @export
  */
 export function getVulkanInfoPath(sdkInstallPath: string): string {
   if (platform.IS_WINDOWS || platform.IS_WINDOWS_ARM) {
@@ -439,7 +431,6 @@ export function getVulkanInfoPath(sdkInstallPath: string): string {
  * @param {string} sdk_path - The installation path of the Vulkan SDK, e.g. "C:\VulkanSDK\
  * @param {string} version - The version of the Vulkan SDK
  * @return {*}  {string}
- * @export
  */
 export function getVulkanSdkPath(sdkPath: string, version: string): string {
   // let install_path be a versionized path to the SDK
@@ -475,7 +466,6 @@ export function getVulkanSdkPath(sdkPath: string, version: string): string {
  *
  * The verification is done by checking the existence of the "vulkaninfo" executable.
  *
- * @export
  * @param {string} sdk_install_path - The installation path of the Vulkan SDK, e.g. "C:\VulkanSDK\1.3.250.1\x86_x64".
  * @return {*}  {boolean}
  */
@@ -517,7 +507,6 @@ export function runVulkanInfo(vulkanInfoPath: string): void {
 /**
  * Verify the installation of the Vulkan Runtime.
  *
- * @export
  * @param {string} sdkRuntimePath - Path to the runtime folder, e.g. "C:\VulkanSDK\1.3.250.1\runtime".
  * @return {*}  {boolean}
  */
@@ -539,7 +528,6 @@ export function verifyInstallationOfRuntime(sdkRuntimePath: string): boolean {
  * It removes superflous files given the CI context this action runs in,
  * e.g. removing demos and removing the maintainance-tool.exe.
  *
- * @export
  * @param {string} sdk_install_path - The installation path of the Vulkan SDK, e.g. "C:\VulkanSDK\1.3.250.1".
  */
 export function stripdownInstallationOfSdk(sdkInstallPath: string): void {

@@ -15,7 +15,6 @@ import { registerDriverInWindowsRegistry } from './windows'
 /**
  * Install the Mesa3D lavapipe library.
  *
- * @export
  * @param {string} destination - The destination path for the Mesa lavapipe.
  * @param {boolean} useCache - Whether to use a cached
  */
