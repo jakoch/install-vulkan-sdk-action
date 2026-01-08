@@ -3,18 +3,18 @@
  *  SPDX-License-Identifier: MIT
  *----------------------------------------------------------------------------*/
 
+import * as path from 'node:path'
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
-import * as path from 'node:path'
 import * as downloader from './downloader'
 import * as errors from './errors'
+import { githubTokenStore } from './github'
 import * as input from './inputs'
-import * as installerVulkan from './installer_vulkan'
-import * as installerSwiftshader from './installer_swiftshader'
 import * as installerLavapipe from './installer_lavapipe'
+import * as installerSwiftshader from './installer_swiftshader'
+import * as installerVulkan from './installer_vulkan'
 import * as platform from './platform'
 import * as versionsVulkan from './versions_vulkan'
-import { githubTokenStore } from './github'
 
 /**
  * Get Cache Keys

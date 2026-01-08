@@ -3,8 +3,8 @@
  *  SPDX-License-Identifier: MIT
  *----------------------------------------------------------------------------*/
 
-import * as os from 'node:os'
 import * as fs from 'node:fs'
+import * as os from 'node:os'
 
 export const HOME_DIR: string = os.homedir() // $HOME
 export const TEMP_DIR: string = os.tmpdir()

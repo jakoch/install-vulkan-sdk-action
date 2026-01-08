@@ -3,9 +3,9 @@
  *  SPDX-License-Identifier: MIT
  *----------------------------------------------------------------------------*/
 
-import * as core from '@actions/core'
-import * as fs from 'node:fs'
 import * as crypto from 'node:crypto'
+import * as fs from 'node:fs'
+import * as core from '@actions/core'
 
 /**
  * Compute the SHA256 of a local file and return the hex digest.
@@ -47,7 +47,7 @@ export async function compareFileSha(localPath: string, expectedSha: string, fai
       return false
     }
 
-    core.info(`SHA verified: ${localPath}`)
+    core.info(`   SHA verified: ${localPath}`)
     return true
   } catch (err) {
     const msg = `Failed to verify SHA for ${localPath}: ${err instanceof Error ? err.message : String(err)}`

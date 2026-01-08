@@ -3,8 +3,8 @@
  *  SPDX-License-Identifier: MIT
  *----------------------------------------------------------------------------*/
 
-import * as core from '@actions/core'
 import * as path from 'node:path'
+import * as core from '@actions/core'
 import * as platform from './platform'
 import * as versionsVulkan from './versions_vulkan'
 

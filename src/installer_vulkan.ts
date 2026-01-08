@@ -3,12 +3,12 @@
  *  SPDX-License-Identifier: MIT
  *----------------------------------------------------------------------------*/
 
-import * as core from '@actions/core'
 import { execSync } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import * as platform from './platform'
+import * as core from '@actions/core'
 import * as archive from './archive'
+import * as platform from './platform'
 
 /**
  * Install the Vulkan SDK.

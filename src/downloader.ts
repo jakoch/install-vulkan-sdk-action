@@ -3,15 +3,15 @@
  *  SPDX-License-Identifier: MIT
  *----------------------------------------------------------------------------*/
 
+import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache' // https://github.com/actions/toolkit/tree/main/packages/tool-cache
-import * as path from 'node:path'
-import * as http from './http'
 import * as errors from './errors'
+import * as http from './http'
 import * as platform from './platform'
+import { compareFileSha } from './verify'
 import * as versions from './versions'
 import * as versionsVulkan from './versions_vulkan'
-import { compareFileSha } from './verify'
 
 /**
  * Get download url for Vulkan SDK.
