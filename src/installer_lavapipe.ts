@@ -3,12 +3,14 @@
  *  SPDX-License-Identifier: MIT
  *----------------------------------------------------------------------------*/
 
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
 import * as errors from './errors'
-import * as core from '@actions/core'
-import * as versionsRasterizers from './versions_rasterizers'
 import * as http from './http'
-import * as path from 'node:path'
+import * as versionsRasterizers from './versions_rasterizers'
+import { registerDriverInWindowsRegistry } from './windows'
 
 /**
  * Install the Mesa3D lavapipe library.
@@ -70,15 +72,31 @@ export async function getLatestVersion(): Promise<{ url: string; version: string
 }
 
 /**
- * Compute Lavapipe ICD file paths and `$PATH` paths for a given install path.
+ * Verify the Lavapipe installation by checking for required files.
  *
- * @export
- * @param {string} installPath
- * @returns {{ icd: string[]; binPath: string[] }} path to the ICD files and path to add to `$PATH`
+ * @param {string} installPath - The installation path to verify.
+ * @returns {boolean} - True if installation is valid, false otherwise.
  */
-export function setupLavapipe(installPath: string): { icd: string[]; binPath: string[] } {
-  return {
-    icd: [path.normalize(`${installPath}/share/vulkan/icd.d/lvp_icd.x86_64.json`)],
-    binPath: [path.normalize(`${installPath}/bin`)]
+export function verifyInstallation(installPath: string): boolean {
+  const requiredFiles = ['/bin/vulkan_lvp.dll', '/share/vulkan/icd.d/lvp_icd.x86_64.json']
+  for (const file of requiredFiles) {
+    if (!fs.existsSync(path.join(installPath, file))) {
+      return false
+    }
   }
+  return true
+}
+
+/**
+ * Setup Lavapipe ICD by registering it to the Windows registry.
+ * Shows the bin folder path for debugging and copying DLLs to app folders.
+ *
+ * @param {string} installPath
+ */
+export function setupLavapipe(installPath: string) {
+  const binDir = path.normalize(`${installPath}/bin`)
+  core.info(`ℹ️ Lavapipe bin path: ${binDir}`)
+
+  const icdPath = path.normalize(`${installPath}/share/vulkan/icd.d/lvp_icd.x86_64.json`)
+  registerDriverInWindowsRegistry(icdPath)
 }

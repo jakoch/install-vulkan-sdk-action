@@ -228,12 +228,6 @@ export async function run(): Promise<void> {
     }
 
     /* ----------------------------------------------------------------------
-     * Setup Rasterizer Drivers
-     * ---------------------------------------------------------------------- */
-    const icdFiles: string[] = []
-    const pathEntries: string[] = []
-
-    /* ----------------------------------------------------------------------
      * Install SwiftShader
      * ---------------------------------------------------------------------- */
 
@@ -243,10 +237,12 @@ export async function run(): Promise<void> {
         inputs.swiftshaderDestination,
         inputs.useCache
       )
-      const swiftshaderPaths = installerSwiftshader.setupSwiftshader(swiftshaderInstallPath)
-      pathEntries.push(...swiftshaderPaths.binPath)
-      icdFiles.push(...swiftshaderPaths.icd)
-      core.info(`ℹ️ [INFO] Path to SwiftShader: ${swiftshaderInstallPath}`)
+      if (installerSwiftshader.verifyInstallation(swiftshaderInstallPath)) {
+        core.info(`ℹ️ [INFO] Path to SwiftShader: ${swiftshaderInstallPath}`)
+        installerSwiftshader.setupSwiftshader(swiftshaderInstallPath)
+      } else {
+        core.warning(`Could not find SwiftShader in ${swiftshaderInstallPath}`)
+      }
     }
 
     /* ----------------------------------------------------------------------
@@ -256,24 +252,12 @@ export async function run(): Promise<void> {
     if (platform.IS_WINDOWS && inputs.installLavapipe) {
       core.info(`🚀 Installing Lavapipe library...`)
       const lavapipeInstallPath = await installerLavapipe.installLavapipe(inputs.lavapipeDestination, inputs.useCache)
-      const lavapipePaths = installerLavapipe.setupLavapipe(lavapipeInstallPath)
-      pathEntries.push(...lavapipePaths.binPath)
-      icdFiles.push(...lavapipePaths.icd)
-      core.info(`ℹ️ [INFO] Path to Lavapipe: ${lavapipeInstallPath}`)
-    }
-
-    /* ----------------------------------------------------------------------
-     * Setup Environment Variables for Rasterizers (VK_DRIVER_FILES, PATH)
-     * ---------------------------------------------------------------------- */
-
-    if (platform.IS_WINDOWS && (inputs.installSwiftshader || inputs.installLavapipe)) {
-      const icdList = icdFiles.join(';')
-      core.exportVariable('VK_DRIVER_FILES', icdList)
-      core.info(`✔️ [ENV] Set VK_DRIVER_FILES -> "${icdList}".`)
-      pathEntries.forEach(p => {
-        core.addPath(p)
-      })
-      core.info(`✔️ [PATH] Added rasterizer library paths to environment variable PATH.`)
+      if (installerLavapipe.verifyInstallation(lavapipeInstallPath)) {
+        core.info(`ℹ️ [INFO] Path to Lavapipe: ${lavapipeInstallPath}`)
+        installerLavapipe.setupLavapipe(lavapipeInstallPath)
+      } else {
+        core.warning(`Could not find Lavapipe in ${lavapipeInstallPath}`)
+      }
     }
 
     core.info(`✅ Done.`)

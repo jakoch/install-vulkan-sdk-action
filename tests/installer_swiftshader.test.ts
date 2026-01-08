@@ -3,7 +3,10 @@
  *  SPDX-License-Identifier: MIT
  *--------------------------------------------------------------------------------------------*/
 
-import { installSwiftShader, getLatestVersion } from '../src/installer_swiftshader'
+import { installSwiftShader, getLatestVersion, verifyInstallation, setupSwiftshader } from '../src/installer_swiftshader'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+import * as windows from '../src/windows'
 import * as tc from '@actions/tool-cache'
 import * as versionsRasterizers from '../src/versions_rasterizers'
 import * as http from '../src/http'
@@ -13,6 +16,7 @@ import * as errors from '../src/errors'
 jest.mock('@actions/tool-cache')
 jest.mock('../src/versions_rasterizers')
 jest.mock('../src/http')
+jest.mock('../src/windows')
 
 describe('installer_swiftshader', () => {
   afterEach(() => {
@@ -136,6 +140,61 @@ describe('installer_swiftshader', () => {
       expect(result.url).toBe('')
       expect(result.version).toBe('')
       spyError.mockRestore()
+    })
+  })
+
+  describe('verifyInstallation and setupSwiftshader', () => {
+    afterEach(() => {
+      jest.restoreAllMocks()
+      try {
+        fs.rmSync(path.join(__dirname, 'tmp_swiftshader'), { recursive: true })
+      } catch (e) {
+        // ignore
+      }
+    })
+
+    it('verifyInstallation returns true when required files exist', () => {
+      const tmp = path.join(__dirname, 'tmp_swiftshader')
+      try {
+        fs.rmSync(tmp, { recursive: true })
+      } catch (e) {
+        // ignore
+      }
+      fs.mkdirSync(tmp, { recursive: true })
+      fs.writeFileSync(path.join(tmp, 'vk_swiftshader.dll'), 'dll')
+      fs.writeFileSync(path.join(tmp, 'vk_swiftshader_icd.json'), '{}')
+
+      const ok = verifyInstallation(tmp)
+      expect(ok).toBe(true)
+
+      fs.rmSync(tmp, { recursive: true })
+    })
+
+    it('verifyInstallation returns false when files are missing', () => {
+      const tmp = path.join(__dirname, 'tmp_swiftshader_missing')
+      try {
+        fs.rmSync(tmp, { recursive: true })
+      } catch (e) {
+        // ignore
+      }
+      fs.mkdirSync(tmp, { recursive: true })
+
+      const ok = verifyInstallation(tmp)
+      expect(ok).toBe(false)
+
+      fs.rmSync(tmp, { recursive: true })
+    })
+
+    it('setupSwiftshader logs bin path and registers ICD', () => {
+      const spyInfo = jest.spyOn(require('@actions/core'), 'info').mockImplementation(jest.fn())
+      const spyRegister = (windows.registerDriverInWindowsRegistry as unknown) as jest.Mock
+
+      setupSwiftshader('/fake/swiftshader')
+
+      expect(spyInfo).toHaveBeenCalledWith(expect.stringContaining('/fake/swiftshader/bin'))
+      expect(spyRegister).toHaveBeenCalledWith(expect.stringContaining('swiftshader_icd.json'))
+
+      spyInfo.mockRestore()
     })
   })
 })
