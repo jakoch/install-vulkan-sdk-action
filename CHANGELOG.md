@@ -11,6 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.4.0] - 2026-08-01
+
+### Added
+- The action automatically inserts the software rasterizer drivers into the Windows registry, removing the need for a manual registry entry (reg add).
+
+### Changed
+- Code style improvements: removed superfluous @export annotations, ordered imports, and removed unused methods.
+
+### Removed
+- Removed VK_DRIVER_FILES approach because environment variables are ignored when running with elevated permissions on CI.
+- Removed adding software rasterizers to the PATH environment variable.
+  After registering, the location of the DLLs is already known via the chain: ICD → registry → JSON → DLL.
+
 ## [1.3.0] - 2026-06-01
 
 ### Added
@@ -188,7 +201,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Section for Reference Links -->
 
-[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.3.0...HEAD
+[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.8...v1.3.0
 [1.2.8]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.7...v1.2.8
 [1.2.7]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.2.6...v1.2.7
