@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
-## [1.4.0] - 2026-08-01
+## [1.4.0] - 2026-01-08
 
 ### Added
 - The action automatically inserts the software rasterizer drivers into the Windows registry, removing the need for a manual registry entry (reg add).
@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed adding software rasterizers to the PATH environment variable.
   After registering, the location of the DLLs is already known via the chain: ICD → registry → JSON → DLL.
 
-## [1.3.0] - 2026-06-01
+## [1.3.0] - 2026-01-06
 
 ### Added
 - Added caching to installer_swiftshader and installer_lavapipe, [#492](https://github.com/jakoch/install-vulkan-sdk-action/issues/492)
