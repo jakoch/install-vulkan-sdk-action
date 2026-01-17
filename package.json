@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2",
-    "@github/local-action": "^2.2.1",
+    "@github/local-action": "^6.0.2",
     "@types/jest": "^30",
     "@types/node": "^25.0",
     "@vercel/ncc": "^0.38.4",
