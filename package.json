@@ -39,7 +39,7 @@
     "@actions/core": "^2",
     "@actions/http-client": "^3",
     "@actions/io": "^2",
-    "@actions/tool-cache": "^2"
+    "@actions/tool-cache": "^3"
   },
   "devDependencies": {
     "@biomejs/biome": "^2",
