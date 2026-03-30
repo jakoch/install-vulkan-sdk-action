@@ -50,7 +50,7 @@ jobs:
           npm run test:cov
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5 # https://github.com/codecov/codecov-action
+        uses: codecov/codecov-action@v6 # https://github.com/codecov/codecov-action
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info
