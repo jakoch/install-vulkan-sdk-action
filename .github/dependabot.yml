@@ -4,9 +4,9 @@ updates:
   - package-ecosystem: 'npm'
     # Look for `package.json` and `lock` files in the `root` directory
     directory: '/'
-    # Check the npm registry for updates weekly
+    # Check the npm registry for updates monthly
     schedule:
-      interval: 'weekly'
+      interval: 'monthly'
     commit-message:
       prefix: "deps(npm): "
     labels:
@@ -20,10 +20,10 @@ updates:
     directory: '/'
     schedule:
       # Check for updates to GitHub Actions once a month
-      interval: 'weekly'
+      interval: 'monthly'
     commit-message:
       prefix: "deps(gha): "
     labels:
-      - "dependencies"  
+      - "dependencies"
 
 
