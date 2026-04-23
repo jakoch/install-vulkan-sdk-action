@@ -18,13 +18,15 @@
     "test:cov": "jest --verbose --coverage",
     "test:nocache": "jest --verbose --detectOpenHandles --runInBand --no-cache",
     "npm:audit": "npm audit --audit-level=high fix",
+    "npm:audit_json": "npm audit --json --audit-level=moderate > audit.json",
     "npm:outdated": "npm outdated",
     "npm:clean_install": "npm clean-install --no-audit --strict-peer-deps",
     "npm:install": "npm install --no-audit --strict-peer-deps",
     "npm:update": "npm update --no-audit --strict-peer-deps",
     "prepare": "husky",
     "pre-commit": "npm run all",
-    "all": "npm run format:write && npm run build && npm run npm:audit && npm run package && npm test"
+    "all": "npm run format:write && npm run build && npm run npm:audit && npm run package && npm test",
+    "_comment_1": "devDependency: @github/local-action ^7.0.0 is required for local testing (local:run), but was removed due to audit issues."
   },
   "keywords": [
     "actions",
@@ -36,14 +38,13 @@
   "main": "lib/main.js",
   "dependencies": {
     "@actions/cache": "^5",
-    "@actions/core": "^3",
+    "@actions/core": "^2",
     "@actions/http-client": "^3",
     "@actions/io": "^2",
-    "@actions/tool-cache": "^4"
+    "@actions/tool-cache": "^3"
   },
   "devDependencies": {
     "@biomejs/biome": "^2",
-    "@github/local-action": "^7.0.0",
     "@types/jest": "^30",
     "@types/node": "^25.0",
     "@vercel/ncc": "^0.38.4",
@@ -60,7 +61,7 @@
     "url": "https://github.com/jakoch/install-vulkan-sdk-action/issues"
   },
   "engines": {
-    "node": ">=20.18.1",
+    "node": ">=24",
     "npm": ">=10.8.0"
   }
 }

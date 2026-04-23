@@ -32,7 +32,9 @@ class GithubTokenStore {
   setToken(token: string) {
     if (this.token) return
     this.token = token
-    core.setSecret(this.token)
+    if (this.token !== '') {
+      core.setSecret(this.token)
+    }
   }
 
   getToken(): string | undefined {

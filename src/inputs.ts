@@ -67,7 +67,9 @@ export async function getInputs(): Promise<Inputs> {
   // Prefer github_token input over GITHUB_TOKEN env variable
   const inputGithubToken = core.getInput('github_token', { required: false }) || process.env.GITHUB_TOKEN || ''
   // mask secret in logs
-  core.setSecret(inputGithubToken)
+  if (inputGithubToken !== '') {
+    core.setSecret(inputGithubToken)
+  }
 
   const inputs = {
     // Vulkan SDK inputs
@@ -96,7 +98,9 @@ export async function getInputs(): Promise<Inputs> {
   }
 
   // mask secret in logs
-  core.setSecret(inputs.githubToken)
+  if (inputs.githubToken !== '') {
+    core.setSecret(inputs.githubToken)
+  }
 
   // Apply implicit conditions
 

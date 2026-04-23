@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+- raise Node version to 24
+- fix warning: Can't add secret mask for empty string, when calling core.setSecret
+- downgrade @actions/* packages to pre-ESM majors
+
 ## [1.4.0] - 2026-01-08
 
 ### Added
