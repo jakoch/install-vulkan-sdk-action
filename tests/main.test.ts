@@ -18,6 +18,10 @@ jest.mock('../src/platform')
 jest.mock('@actions/cache')
 jest.mock('@actions/core')
 
+// Ensure tests that expect cache writes simulate a main push environment
+process.env.GITHUB_EVENT_NAME = process.env.GITHUB_EVENT_NAME ?? 'push'
+process.env.GITHUB_REF = process.env.GITHUB_REF ?? 'refs/heads/main'
+
 // Import mocked modules
 import * as downloader from '../src/downloader'
 import * as installer_vulkan from '../src/installer_vulkan'
@@ -150,8 +154,23 @@ describe('run', () => {
     ;(core.exportVariable as jest.MockedFunction<typeof core.exportVariable>).mockImplementation(mockExportVariable)
     ;(core.info as jest.MockedFunction<typeof core.info>).mockImplementation(mockInfo)
 
-    // Run the function
-    await main.run()
+    // Run the function (simulate main push so cache is saved)
+    const _oldEventName = process.env.GITHUB_EVENT_NAME
+    const _oldRef = process.env.GITHUB_REF
+    try {
+      process.env.GITHUB_EVENT_NAME = 'push'
+      process.env.GITHUB_REF = 'refs/heads/main'
+      // sanity check: ensure env vars are set for the test
+      expect(process.env.GITHUB_EVENT_NAME).toBe('push')
+      expect(process.env.GITHUB_REF).toBe('refs/heads/main')
+      // debug
+      await main.run()
+    } finally {
+      if (typeof _oldEventName === 'undefined') delete process.env.GITHUB_EVENT_NAME
+      else process.env.GITHUB_EVENT_NAME = _oldEventName
+      if (typeof _oldRef === 'undefined') delete process.env.GITHUB_REF
+      else process.env.GITHUB_REF = _oldRef
+    }
 
     // Verify calls
     expect(inputs.getInputs).toHaveBeenCalled()

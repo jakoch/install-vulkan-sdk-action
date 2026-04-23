@@ -19,18 +19,33 @@ import * as versionsVulkan from './versions_vulkan'
 /**
  * Get Cache Keys
  *
- * Format will be "cache-OS-ARCH-vulkan-sdk-VERSION-HASH".
- * E.g. "cache-linux-x64-vulkan-sdk-1.3.250.1-hash".
+ * Cache behaviour
+ * - We use a main-only producer model for SDK caching.
+ * - Only the main branch is allowed to write/update the cache.
+ *   - see cache.saveCache() with check for branch name "main"
+ * - It's a single shared cache per OS/ARCH/version.
+ * - All workflows (PRs, pushes, schedules, manual runs) only restore from this cache.
+ * - There are no branch specific caches.
+ *
+ * Format:
+ *   Key: "cache-OS-ARCH-vulkan-sdk-VERSION"
+ *
+ * Example:
+ *   "cache-linux-x64-vulkan-sdk-1.3.250.1"
  *
  * @param {string} version - The Vulkan SDK version.
- * @return { cachePrimaryKey: string; cacheRestoreKeys: string[]; }
  */
 export function getCacheKeys(version: string): { cachePrimaryKey: string; cacheRestoreKeys: string[] } {
-  // Note: getPlatform() is used to get "windows", instead of OS_PLATFORM value "win32"
-  const cachePrimaryKey = `cache-${platform.getPlatform()}-${platform.OS_ARCH}-vulkan-sdk-${version}`
-  const cacheRestoreKey1 = `cache-${platform.getPlatform()}-${platform.OS_ARCH}-vulkan-sdk-`
-  const cacheRestoreKey2 = `cache-${platform.getPlatform()}-${platform.OS_ARCH}-`
-  return { cachePrimaryKey, cacheRestoreKeys: [cacheRestoreKey1, cacheRestoreKey2] }
+  const os = platform.getPlatform() || 'unknown'
+  const arch = platform.OS_ARCH || 'x64'
+
+  const cacheKey = `cache-${os}-${arch}-vulkan-sdk-${version}`
+  const cachePrefix = `cache-${os}-${arch}-vulkan-sdk-`
+
+  return {
+    cachePrimaryKey: cacheKey,
+    cacheRestoreKeys: [cacheKey, cachePrefix]
+  }
 }
 
 /**
@@ -100,8 +115,16 @@ async function getVulkanSdk(
     }
   }
 
-  // cache install folder
-  if (useCache) {
+  /*
+    Cache the installed SDK for future runs.
+    Only the main branch is allowed to write/update the cache, see getCacheKeys()
+   */
+  const isMainPush = process.env.GITHUB_EVENT_NAME === 'push' && process.env.GITHUB_REF === 'refs/heads/main'
+
+  const canWriteCache = useCache && isMainPush
+  // no-op: cache write decision (main-only producer model)
+
+  if (canWriteCache) {
     if (stripdown) {
       installerVulkan.stripdownInstallationOfSdk(installPath)
     }

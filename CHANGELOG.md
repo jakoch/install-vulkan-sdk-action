@@ -11,9 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.5.0] - 2026-04-23
+
+### Changed
 - raise Node version to 24
-- fix warning: Can't add secret mask for empty string, when calling core.setSecret
-- downgrade @actions/* packages to pre-ESM majors
+- changed Vulkan SDK caching mechanism:
+  - implemented a main-only producer model for cache writes
+  - removed cache writes from non-main branches and pull requests
+  - added environment variable checks to ensure cache writes only occur in main push events
+  - updated tests to simulate main push environment for cache write scenarios
+  - this means: PRs and non-main branches will no longer write to the cache,
+    but can still read from it if a main branch has previously written a compatible cache entry
+
+## Fixed
+- fixed warning: Can't add secret mask for empty string, when calling core.setSecret
+- downgraded all @actions/* packages to pre-ESM majors, because of audit and resolve issues with ESM versions
 
 ## [1.4.0] - 2026-01-08
 
