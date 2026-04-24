@@ -31,6 +31,9 @@ inputs:
   cache:
     description: "Cache the Vulkan installation folder. Default: false."
     required: false
+  cache_save_if:
+    description: "Condition for saving the cache. Default: true (save the cache). If false, cache won't be saved, only restored."
+    required: false
   stripdown:
     description: "Reduces the Vulkan SDK size before caching. Default: false."
     required: false

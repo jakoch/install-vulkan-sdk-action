@@ -51,9 +51,11 @@ describe('getInputs', () => {
       destination: '/some/path',
       installRuntime: true,
       installRuntimeOnly: false,
-      useCache: false,
       optionalComponents: [],
       stripdown: false,
+      // cache
+      useCache: false,
+      cacheSaveIf: true,
       // swiftshader
       installSwiftshader: false,
       swiftshaderDestination: `${platform.HOME_DIR}/swiftshader`,
@@ -95,9 +97,11 @@ describe('getInputs', () => {
       githubToken: '',
       installRuntime: true, // should be true because installRuntimeOnly is true
       installRuntimeOnly: true,
-      useCache: false,
       optionalComponents: [],
       stripdown: false,
+      // cache
+      useCache: false,
+      cacheSaveIf: true,
       // swiftshader
       installSwiftshader: false,
       swiftshaderDestination: `${platform.HOME_DIR}/swiftshader`,
@@ -112,6 +116,63 @@ describe('getInputs', () => {
     const result = (require('../src/inputs') as typeof import('../src/inputs')).getInputVulkanOptionalComponents(mixed)
 
     expect(result).toEqual(['com.lunarg.vulkan.x64', 'com.lunarg.vulkan.debug'])
+  })
+})
+
+describe('cache_save_if parsing', () => {
+  afterEach(() => {
+    jest.resetModules()
+    jest.restoreAllMocks()
+    jest.clearAllMocks()
+  })
+
+  it('defaults to true when input is empty', async () => {
+    const coreMock = require('@actions/core')
+    coreMock.getInput = jest.fn().mockImplementation((name: string) => {
+      const map: Record<string, string> = {
+        vulkan_version: '1.4.328.1',
+        destination: '/some/path',
+        install_runtime: 'false',
+        cache: 'false',
+        optional_components: '',
+        stripdown: 'false',
+        install_swiftshader: 'false',
+        swiftshader_destination: '',
+        install_Lavapipe: 'false',
+        lavapipe_destination: '',
+        github_token: ''
+      }
+      return map[name] || ''
+    })
+
+    const inputsModule = require('../src/inputs')
+    const result = await inputsModule.getInputs()
+    expect(result.cacheSaveIf).toBe(true)
+  })
+
+  it('parses explicit false value', async () => {
+    const coreMock = require('@actions/core')
+    coreMock.getInput = jest.fn().mockImplementation((name: string) => {
+      const map: Record<string, string> = {
+        vulkan_version: '1.4.328.1',
+        destination: '/some/path',
+        install_runtime: 'false',
+        cache: 'false',
+        'cache_save_if': 'false',
+        optional_components: '',
+        stripdown: 'false',
+        install_swiftshader: 'false',
+        swiftshader_destination: '',
+        install_Lavapipe: 'false',
+        lavapipe_destination: '',
+        github_token: ''
+      }
+      return map[name] || ''
+    })
+
+    const inputsModule = require('../src/inputs')
+    const result = await inputsModule.getInputs()
+    expect(result.cacheSaveIf).toBe(false)
   })
 })
 

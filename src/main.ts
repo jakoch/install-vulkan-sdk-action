@@ -53,19 +53,21 @@ export function getCacheKeys(version: string): { cachePrimaryKey: string; cacheR
  *
  * @param {string} version - The version of the Vulkan SDK to install.
  * @param {string} destination - The directory where the Vulkan SDK will be installed.
- * @param {string[]} optional_components - An array of optional components to install alongside the SDK.
- * @param {boolean} use_cache - Whether to use a cached SDK, if available. And store SDK to cache, if not available.
+ * @param {string[]} optionalComponents - An array of optional components to install alongside the SDK.
  * @param {boolean} stripdown - Whether to reduce the size of the installed SDK for caching.
- * @param {boolean} install_runtime - Whether to install the Vulkan runtime.
+ * @param {boolean} installRuntime - Whether to install the Vulkan runtime.
+ * @param {boolean} useCache - Whether to enable caching of the Vulkan SDK installation for future runs.
+ * @param {boolean} cacheSaveIf - Condition, to control when to save the cache (e.g. only on main or another condition).
  * @return {*}  {Promise<string>} A Promise that resolves to the path where the Vulkan SDK is installed.
  */
 async function getVulkanSdk(
   version: string,
   destination: string,
   optionalComponents: string[],
-  useCache: boolean,
   stripdown: boolean,
-  installRuntime: boolean
+  installRuntime: boolean,
+  useCache: boolean,
+  cacheSaveIf: boolean
 ): Promise<string> {
   let installPath: string
 
@@ -117,12 +119,10 @@ async function getVulkanSdk(
 
   /*
     Cache the installed SDK for future runs.
-    Only the main branch is allowed to write/update the cache, see getCacheKeys()
+    By default the action saves the cache. The `cacheSaveIf` input allows users
+    to control when the cache is written (e.g. only on main or another condition).
    */
-  const isMainPush = process.env.GITHUB_EVENT_NAME === 'push' && process.env.GITHUB_REF === 'refs/heads/main'
-
-  const canWriteCache = useCache && isMainPush
-  // no-op: cache write decision (main-only producer model)
+  const canWriteCache = useCache && cacheSaveIf
 
   if (canWriteCache) {
     if (stripdown) {
@@ -189,9 +189,10 @@ export async function run(): Promise<void> {
         version,
         inputs.destination,
         inputs.optionalComponents,
-        inputs.useCache,
         inputs.stripdown,
-        inputs.installRuntime
+        inputs.installRuntime,
+        inputs.useCache,
+        inputs.cacheSaveIf
       )
 
       const installPath = installerVulkan.getVulkanSdkPath(sdkPath, version)

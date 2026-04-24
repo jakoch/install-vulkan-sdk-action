@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.5.1] - 2026-04-24
+
+## Added
+
+- added input variable `cache_save_if`: to pass in a configurable condition to control saving the cache (defaults to true). [#558]
+
+## Changed
+
+- changed Vulkan SDK caching mechanism
+  - It no longer saves on pushes to main. Instead, the `cache_save_if` input is used to decide when to save to cache. This provides flexibility for users to configure the caching policy.
+
 ## [1.5.0] - 2026-04-23
 
 ### Changed

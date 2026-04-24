@@ -19,9 +19,11 @@ export interface Inputs {
   destination: string
   installRuntime: boolean
   installRuntimeOnly: boolean
-  useCache: boolean
   optionalComponents: string[]
   stripdown: boolean
+  // Caching inputs
+  useCache: boolean
+  cacheSaveIf: boolean
   // SwiftShader inputs
   installSwiftshader: boolean
   swiftshaderDestination: string
@@ -49,9 +51,12 @@ export async function getInputs(): Promise<Inputs> {
   const inputDestination = core.getInput('destination', { required: false })
   const inputInstallRuntime = core.getInput('install_runtime', { required: false })
   const inputInstallRuntimeOnly = core.getInput('install_runtime_only', { required: false })
-  const inputUseCache = core.getInput('cache', { required: false })
   const inputOptionalComponents = core.getInput('optional_components', { required: false })
   const inputStripdown = core.getInput('stripdown', { required: false })
+
+  // Caching
+  const inputUseCache = core.getInput('cache', { required: false })
+  const inputCacheSaveIf = core.getInput('cache_save_if', { required: false })
 
   // SwiftShader raw inputs
   const inputInstallSwiftshader = core.getInput('install_swiftshader', { required: false })
@@ -77,9 +82,12 @@ export async function getInputs(): Promise<Inputs> {
     destination: await getInputVulkanDestination(inputDestination),
     installRuntime: /true/i.test(inputInstallRuntime),
     installRuntimeOnly: /true/i.test(inputInstallRuntimeOnly),
-    useCache: /true/i.test(inputUseCache),
     optionalComponents: await getInputVulkanOptionalComponents(inputOptionalComponents),
     stripdown: /true/i.test(inputStripdown),
+
+    // Caching inputs
+    useCache: /true/i.test(inputUseCache),
+    cacheSaveIf: await getCacheSaveIf(inputCacheSaveIf),
 
     // SwiftShader inputs
     installSwiftshader: /true/i.test(inputInstallSwiftshader),
@@ -196,6 +204,15 @@ export function getInputVulkanDestination(destination: string): string {
   core.debug(`vulkansdk_destination: ${destination}`)
 
   return destination
+}
+
+/**
+ * Validates the "cache_save_if" argument.
+ *
+ * If "cache_save_if" was not set or is empty, assume true (save the cache).
+ */
+export function getCacheSaveIf(inputCacheSaveIf: string): boolean {
+  return inputCacheSaveIf === '' || /true/i.test(inputCacheSaveIf)
 }
 
 /**

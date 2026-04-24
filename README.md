@@ -101,6 +101,7 @@ The following inputs can be used as `steps.with` keys:
 | `install_runtime`        | bool    | Windows only. Installs the vulkan runtime ('vulkan-1.dll') into a `runtime` folder inside `destination`, if true. Windows: `C:\VulkanSDK\{vulkan_version}\runtime\{x86,x64}`. | true | false |
 | `install_runtime_only`   | bool    | Windows only. Installs just the Vulkan Runtime components and disables the installation of the Vulkan SDK. Implicitly sets `install_runtime` to true. | false | false |
 | `cache`                  | bool    | Cache the Vulkan installation folder.   | true | false |
+| `cache_save_if`          | bool    | Condition, whether to save the cache.    | true | false |
 | `stripdown`              | bool    | Windows only. Whether to reduce the size of the SDK, before caching. | false | false |
 | `install_swiftshader`    | bool    | Windows only. Installs Google's SwiftShader software rasterizer. Default: false. | false | false
 | `swiftshader_destination`| String  | The installation folder for SwiftShader. | Windows: `C:\swiftshader`. Linux/MacOS: `%HOME/swiftshader` | false
@@ -110,6 +111,15 @@ The following inputs can be used as `steps.with` keys:
 
 The GitHub token is only needed if your workflow makes more than 60 API requests, such as when using a large build matrix or building often.
 The GitHub token is needed by this action to fetch the latest release of a repository via the API (org/repo/releases/latest).
+
+#### Caching
+
+The action supports caching the Vulkan SDK using Github Actions cache.
+The to enable the cache, set `cache: true`. The cache is enabled by default.
+The cache is saved if `cache_save_if` condition is true. The cache is saved by default.
+The `cache_save_if` input allows you to conditionally save the cache,
+for example only on the main branch (`cache_save_if: ${{ github.ref_name == 'main' }}`).
+If `cache_save_if` is false, the cache will not be saved, but it can still be restored.
 
 ### Outputs
 
