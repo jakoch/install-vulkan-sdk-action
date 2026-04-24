@@ -51,7 +51,7 @@
     "husky": "^9.1.7",
     "jest": "^30",
     "ts-jest": "^29",
-    "typescript": "^5.9.2"
+    "typescript": "^6.0.3"
   },
   "repository": {
     "type": "git",
