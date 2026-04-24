@@ -115,11 +115,11 @@ The GitHub token is needed by this action to fetch the latest release of a repos
 #### Caching
 
 The action supports caching the Vulkan SDK using Github Actions cache.
-The to enable the cache, set `cache: true`. The cache is enabled by default.
-The cache is saved if `cache_save_if` condition is true. The cache is saved by default.
-The `cache_save_if` input allows you to conditionally save the cache,
+- To enable the cache, set `cache: true`. The cache is enabled by default.
+- The cache is saved if `cache_save_if` condition is true. The cache is saved by default.
+- The `cache_save_if` input allows you to conditionally save the cache,
 for example only on the main branch (`cache_save_if: ${{ github.ref_name == 'main' }}`).
-If `cache_save_if` is false, the cache will not be saved, but it can still be restored.
+- If `cache_save_if` is false, the cache will not be saved, but it can still be restored.
 
 ### Outputs
 
