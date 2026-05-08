@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.5.2] - 2026-05-09
+
+## Changed
+  - security update: fast-xml-builder v1.1.5 to v1.2.0 (CVE-2026-44665)
+  - (internal) updated DevContainer
+    - update to Node v24 LTS
+    - removed usage of container features
+    - moved zsh install to Dockerfile
+
 ## [1.5.1] - 2026-04-24
 
 ## Added
