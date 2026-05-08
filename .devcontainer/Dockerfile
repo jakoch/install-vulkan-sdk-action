@@ -12,7 +12,8 @@ RUN echo "Packages" && \
     git git-lfs \
     jq \
     grep ripgrep \
-    zip unzip xz-utils xzdec && \
+    zip unzip xz-utils xzdec \
+    zsh zsh zsh-autosuggestions zsh-syntax-highlighting && \
     # Cleanup
     apt-get autoremove -y && \
     apt-get clean autoclean && \
