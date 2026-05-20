@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.5.3] - 2026-05-20
+
+### Fixed
+- Fixed version mismatch on cache restore by removing the prefix fallback cache key. [#580]
+  - Only exact version matches now restore from cache
+  - This prevents stale SDK data from being served on Linux/macOS and
+    silently writing into wrong/old version paths on Windows.
+
 ## [1.5.2] - 2026-05-09
 
 ## Changed
@@ -237,7 +245,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Section for Reference Links -->
 
-[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.1...HEAD
+[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.3...HEAD
+[1.5.3]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.2...v1.5.3
+[1.5.2]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.3.0...v1.4.0
