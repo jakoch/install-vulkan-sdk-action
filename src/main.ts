@@ -40,11 +40,10 @@ export function getCacheKeys(version: string): { cachePrimaryKey: string; cacheR
   const arch = platform.OS_ARCH || 'x64'
 
   const cacheKey = `cache-${os}-${arch}-vulkan-sdk-${version}`
-  const cachePrefix = `cache-${os}-${arch}-vulkan-sdk-`
 
   return {
     cachePrimaryKey: cacheKey,
-    cacheRestoreKeys: [cacheKey, cachePrefix]
+    cacheRestoreKeys: [cacheKey]
   }
 }
 

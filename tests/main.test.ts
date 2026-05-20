@@ -99,10 +99,8 @@ describe('getCacheKeys', () => {
     const result = main.getCacheKeys('1.2.3.4')
     expect(result.cachePrimaryKey).toContain('cache-')
     expect(result.cachePrimaryKey).toContain('vulkan-sdk-1.2.3.4')
-    expect(result.cacheRestoreKeys).toHaveLength(2)
-    expect(result.cacheRestoreKeys[0]).toContain('cache-')
-    expect(result.cacheRestoreKeys[0]).toContain('vulkan-sdk-')
-    expect(result.cacheRestoreKeys[1]).toContain('cache-')
+    expect(result.cacheRestoreKeys).toHaveLength(1)
+    expect(result.cacheRestoreKeys[0]).toContain('vulkan-sdk-1.2.3.4')
   })
 })
 
