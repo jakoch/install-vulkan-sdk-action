@@ -39,7 +39,7 @@
   "dependencies": {
     "@actions/cache": "^5",
     "@actions/core": "^2",
-    "@actions/http-client": "^3",
+    "@actions/http-client": "^4",
     "@actions/io": "^2",
     "@actions/tool-cache": "^3"
   },
