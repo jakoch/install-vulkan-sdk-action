@@ -121,6 +121,11 @@ The action supports caching the Vulkan SDK using Github Actions cache.
 for example only on the main branch (`cache_save_if: ${{ github.ref_name == 'main' }}`).
 - If `cache_save_if` is false, the cache will not be saved, but it can still be restored.
 
+There are two types of caches used by this action:
+
+1. **`@actions/cache`** The cloud-based GitHub Cache is used for the Vulkan SDK installation directory. This is beneficial for the next run of the workflow especially on GitHub-hosted runners.
+2. **`@actions/tool-cache`** The local self-hosted runner tool cache is used for SwiftShader and Lavapipe binaries. This allows for faster caching and retrieval of these smaller components on self-hosted runners.
+
 ### Outputs
 
 The following output variables are available:
