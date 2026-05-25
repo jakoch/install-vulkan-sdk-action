@@ -63,14 +63,15 @@ describe('installer_vulkan', () => {
   it('ensureVulkanLoaderSymlinks creates symlinks for Linux >= 1.4.350.0 when VulkanLoader/lib exists', () => {
     Object.defineProperty(platform, 'IS_LINUX', { value: true, configurable: true })
 
-    const sdkBase = path.join(tmpRoot, 'vulkan_loader_symlinks')
-    const libDir = path.join(sdkBase, 'lib')
+    const version = '1.4.350.0'
+    const sdkBase = path.join(tmpRoot, 'vulkan_loader_symlinks', version)
+    const libDir = path.join(sdkBase, 'x86_64', 'lib')
     const loaderLibDir = path.join(libDir, 'VulkanLoader', 'lib')
     fs.mkdirSync(loaderLibDir, { recursive: true })
     // create a dummy so file so the symlink has a real target
     fs.writeFileSync(path.join(loaderLibDir, 'libvulkan.so.1'), 'dummy')
 
-    installer.ensureVulkanLoaderSymlinks(sdkBase, '1.4.350.0')
+    installer.ensureVulkanLoaderSymlinks(sdkBase, version)
 
     // Verify symlinks were created
     const so1Link = path.join(libDir, 'libvulkan.so.1')
@@ -122,12 +123,13 @@ describe('installer_vulkan', () => {
 
     Object.defineProperty(platform, 'IS_LINUX', { value: true, configurable: true })
 
-    const sdkBase = path.join(tmpRoot, 'vulkan_loader_missing')
-    const libDir = path.join(sdkBase, 'lib')
+    const version = '1.4.350.0'
+    const sdkBase = path.join(tmpRoot, 'vulkan_loader_missing', version)
+    const libDir = path.join(sdkBase, 'x86_64', 'lib')
     fs.mkdirSync(libDir, { recursive: true })
     // Do NOT create VulkanLoader/lib directory
 
-    installer.ensureVulkanLoaderSymlinks(sdkBase, '1.4.350.0')
+    installer.ensureVulkanLoaderSymlinks(sdkBase, version)
 
     // Verify warning was issued
     expect(spyWarning).toHaveBeenCalledWith(
@@ -144,13 +146,14 @@ describe('installer_vulkan', () => {
     Object.defineProperty(platform, 'IS_LINUX', { value: false, configurable: true })
     Object.defineProperty(platform, 'IS_LINUX_ARM', { value: true, configurable: true })
 
-    const sdkBase = path.join(tmpRoot, 'vulkan_loader_arm')
-    const libDir = path.join(sdkBase, 'lib')
+    const version = '1.4.350.0'
+    const sdkBase = path.join(tmpRoot, 'vulkan_loader_arm', version)
+    const libDir = path.join(sdkBase, 'aarch64', 'lib')
     const loaderLibDir = path.join(libDir, 'VulkanLoader', 'lib')
     fs.mkdirSync(loaderLibDir, { recursive: true })
     fs.writeFileSync(path.join(loaderLibDir, 'libvulkan.so.1'), 'dummy')
 
-    installer.ensureVulkanLoaderSymlinks(sdkBase, '1.4.350.0')
+    installer.ensureVulkanLoaderSymlinks(sdkBase, version)
 
     const so1Link = path.join(libDir, 'libvulkan.so.1')
     const soLink = path.join(libDir, 'libvulkan.so')
@@ -171,8 +174,8 @@ describe('installer_vulkan', () => {
     // Mock archive.extract to simulate extraction
     ;(archive.extract as jest.Mock) = jest.fn().mockResolvedValue(fakeInstall)
 
-    // Set up lib/VulkanLoader/lib directory before dispatch
-    const libDir = path.join(fakeInstall, 'lib')
+    // Set up x86_64/lib/VulkanLoader/lib directory before dispatch
+    const libDir = path.join(fakeInstall, 'x86_64', 'lib')
     const loaderLibDir = path.join(libDir, 'VulkanLoader', 'lib')
     fs.mkdirSync(loaderLibDir, { recursive: true })
     fs.writeFileSync(path.join(loaderLibDir, 'libvulkan.so.1'), 'dummy')

@@ -88,7 +88,8 @@ export function ensureVulkanLoaderSymlinks(installPath: string, version: string)
   if (!(platform.IS_LINUX || platform.IS_LINUX_ARM)) return
   if (version < '1.4.350.0') return
 
-  const sdkLibDir = path.join(installPath, 'lib')
+  const sdkArchPath = getVulkanSdkPath(installPath, version)
+  const sdkLibDir = path.join(sdkArchPath, 'lib')
   const vulkanLoaderLibDir = path.join(sdkLibDir, 'VulkanLoader', 'lib')
 
   if (!fs.existsSync(vulkanLoaderLibDir)) {
