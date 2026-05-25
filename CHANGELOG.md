@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.5.4] - 2026-05-25
+
+### Fixed
+- Fixed CMake `FindVulkan` failure on Linux for SDK >= 1.4.350.0 where LunarG moved the loader to `lib/VulkanLoader/lib/`. [#581]
+  - After extraction, symlinks are now created in `$VULKAN_SDK/lib/` so CMake finds the library at the expected location
+  - `LD_LIBRARY_PATH` also includes the new `VulkanLoader/lib` path for direct runtime access
+   - Full backward compatibility: no-op for older SDK versions and non-Linux platforms
+
+### Added
+- added integration test for Vulkan SDK verification (extends [#582])
+- Added `installLavapipeLinux()`, which installs lavapipe on Linux via system package manager [#578]
+
 ## [1.5.3] - 2026-05-20
 
 ### Fixed
@@ -245,7 +257,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Section for Reference Links -->
 
-[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.3...HEAD
+[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.4...HEAD
+[1.5.4]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.0...v1.5.1
