@@ -133,16 +133,20 @@ jobs:
           echo Folder size = `du -hs $VULKAN_SDK`
 
       # The integration test requires: CMake, C++ compiler, Vulkan SDK
-      - name: Verify Vulkan with CMake
-        shell: bash
+      - name: Verify Vulkan with CMake (Linux & macOS)
+        if: contains(matrix.config.OS, 'ubuntu') || contains(matrix.config.OS, 'mac')
         run: |
           cmake -S tests/integration -B build
           cmake --build build
-          if [ -f ./build/vulkan_integration_test.exe ]; then
-            ./build/vulkan_integration_test.exe
-          else
-            ./build/vulkan_integration_test
-          fi
+          ./build/vulkan_integration_test
+
+      - name: Verify Vulkan with CMake (Windows)
+        if: contains(matrix.config.OS, 'windows')
+        shell: bash
+        run: |
+          cmake -S tests/integration -B build
+          cmake --build build --config Release
+          ./build/Release/vulkan_integration_test.exe
 
 # ---------------------------------------------------------------------------------------
 
