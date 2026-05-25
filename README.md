@@ -105,7 +105,7 @@ The following inputs can be used as `steps.with` keys:
 | `stripdown`              | bool    | Windows only. Whether to reduce the size of the SDK, before caching. | false | false |
 | `install_swiftshader`    | bool    | Windows only. Installs Google's SwiftShader software rasterizer. Default: false. | false | false
 | `swiftshader_destination`| String  | The installation folder for SwiftShader. | Windows: `C:\swiftshader`. Linux/MacOS: `%HOME/swiftshader` | false
-| `install_lavapipe`       | bool    | Windows only. Installs Mesa's Lavapipe software rasterizer. Default: false. | false
+| `install_lavapipe`       | bool    | Installs Mesa's Lavapipe software rasterizer. Default: false. | false
 | `lavapipe_destination`   | String  | The installation folder for Lavapipe.    | Windows: `C:\lavapipe`. Linux/MacOS: `%HOME/lavapipe` | false
 | `github_token`           | String  | The Github token (github_token: ${{ secrets.GITHUB_TOKEN }}). | -- | false
 
