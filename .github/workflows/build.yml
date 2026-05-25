@@ -134,6 +134,7 @@ jobs:
 
       # The integration test requires: CMake, C++ compiler, Vulkan SDK
       - name: Verify Vulkan with CMake
+        shell: bash
         run: |
           cmake -S tests/integration -B build
           cmake --build build
