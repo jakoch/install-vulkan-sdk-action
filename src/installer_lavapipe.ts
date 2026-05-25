@@ -3,12 +3,14 @@
  *  SPDX-License-Identifier: MIT
  *----------------------------------------------------------------------------*/
 
+import { execSync } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
 import * as errors from './errors'
 import * as http from './http'
+import * as platform from './platform'
 import * as versionsRasterizers from './versions_rasterizers'
 import { registerDriverInWindowsRegistry } from './windows'
 
@@ -16,9 +18,22 @@ import { registerDriverInWindowsRegistry } from './windows'
  * Install the Mesa3D lavapipe library.
  *
  * @param {string} destination - The destination path for the Mesa lavapipe.
- * @param {boolean} useCache - Whether to use a cached
+ * @param {boolean} useCache - Whether to use a cache (Windows only).
  */
 export async function installLavapipe(destination: string, useCache = false): Promise<string> {
+  if (platform.IS_LINUX || platform.IS_LINUX_ARM) {
+    return installLavapipeLinux()
+  }
+  if (platform.IS_WINDOWS) {
+    return await installLavapipeWindows(destination, useCache)
+  }
+  throw new Error('Lavapipe installation is not supported on this platform.')
+}
+
+/**
+ * Install lavapipe on Windows via pre-built binaries.
+ */
+async function installLavapipeWindows(destination: string, useCache = false): Promise<string> {
   // Get latest version info
   const { url: downloadUrl, version } = await getLatestVersion()
 
@@ -55,6 +70,19 @@ export async function installLavapipe(destination: string, useCache = false): Pr
 }
 
 /**
+ * Install lavapipe on Linux via system package manager.
+ *
+ * @returns {string} Returns '/usr' as a placeholder — unused on Linux but keeps the return type consistent.
+ */
+function installLavapipeLinux(): string {
+  core.info('🚀 Installing Mesa Vulkan drivers (lavapipe) via apt...')
+  execSync('sudo apt-get update -qq', { stdio: 'inherit' })
+  execSync('sudo apt-get install -y -qq mesa-vulkan-drivers', { stdio: 'inherit' })
+  core.info('✔️ Mesa Vulkan drivers installed.')
+  return '/usr'
+}
+
+/**
  * Get the latest Lavapipe version info.
  *
  * @returns {Promise<{ url: string; version: string }>} - The download URL and version.
@@ -77,6 +105,10 @@ export async function getLatestVersion(): Promise<{ url: string; version: string
  * @returns {boolean} - True if installation is valid, false otherwise.
  */
 export function verifyInstallation(installPath: string): boolean {
+  if (platform.IS_LINUX || platform.IS_LINUX_ARM) {
+    const linuxIcdPaths = ['/usr/share/vulkan/icd.d/lvp_icd.x86_64.json', '/usr/share/vulkan/icd.d/lvp_icd.json']
+    return linuxIcdPaths.some(p => fs.existsSync(p))
+  }
   const requiredFiles = ['/bin/vulkan_lvp.dll', '/share/vulkan/icd.d/lvp_icd.x86_64.json']
   for (const file of requiredFiles) {
     if (!fs.existsSync(path.join(installPath, file))) {
@@ -87,8 +119,9 @@ export function verifyInstallation(installPath: string): boolean {
 }
 
 /**
- * Setup Lavapipe ICD by registering it to the Windows registry.
- * Shows the bin folder path for debugging and copying DLLs to app folders.
+ * Setup Lavapipe ICD.
+ * On Windows: registers the ICD in the Windows registry.
+ * On Linux: the ICD is auto-detected by the Vulkan loader from /usr/share/vulkan/icd.d/.
  *
  * @param {string} installPath
  */

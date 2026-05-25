@@ -422,6 +422,58 @@ describe('run', () => {
     expect(mockInfo).toHaveBeenCalledWith('ℹ️ [INFO] Path to Vulkan Runtime: /fake/sdk/path/runtime')
   })
 
+  test('should install Lavapipe on Linux', async () => {
+    // Mock inputs
+    const mockInputs = {
+      version: '1.3.250.1',
+      destination: '/fake/dest',
+      optionalComponents: [],
+      useCache: false,
+      cacheSaveIf: true,
+      stripdown: false,
+      installRuntime: false,
+      installRuntimeOnly: false,
+      installSwiftshader: false,
+      installLavapipe: true,
+      swiftshaderDestination: '',
+      lavapipeDestination: '/fake/lavapipe',
+      githubToken: ''
+    }
+    ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
+
+    ;(versionsVulkan.resolveVersion as jest.MockedFunction<typeof versionsVulkan.resolveVersion>).mockResolvedValue('1.3.250.1')
+
+    ;(downloader.downloadVulkanSdk as jest.MockedFunction<typeof downloader.downloadVulkanSdk>).mockResolvedValue('/fake/download/path')
+
+    ;(installer_vulkan.installVulkanSdk as jest.MockedFunction<typeof installer_vulkan.installVulkanSdk>).mockResolvedValue('/fake/install/path')
+    ;(installer_vulkan.getVulkanSdkPath as jest.MockedFunction<typeof installer_vulkan.getVulkanSdkPath>).mockReturnValue('/fake/sdk/path')
+    ;(installer_vulkan.verifyInstallationOfSdk as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfSdk>).mockReturnValue(true)
+
+    // Mock Lavapipe installer
+    ;(installer_lavapipe.installLavapipe as jest.MockedFunction<typeof installer_lavapipe.installLavapipe>).mockResolvedValue('/usr')
+    jest.mocked(installer_lavapipe.verifyInstallation).mockReturnValue(true)
+
+    // Mock platform as Linux
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: false, writable: true })
+    Object.defineProperty(platform, 'IS_WINDOWS_ARM', { value: false, writable: true })
+    Object.defineProperty(platform, 'IS_LINUX', { value: true, writable: true })
+    Object.defineProperty(platform, 'IS_LINUX_ARM', { value: false, writable: true })
+    Object.defineProperty(platform, 'IS_MAC', { value: false, writable: true })
+
+    // Mock core functions
+    const mockAddPath = jest.fn()
+    const mockExportVariable = jest.fn()
+    const mockInfo = jest.fn()
+    ;(core.addPath as jest.MockedFunction<typeof core.addPath>).mockImplementation(mockAddPath)
+    ;(core.exportVariable as jest.MockedFunction<typeof core.exportVariable>).mockImplementation(mockExportVariable)
+    ;(core.info as jest.MockedFunction<typeof core.info>).mockImplementation(mockInfo)
+
+    await main.run()
+
+    expect(installer_lavapipe.installLavapipe).toHaveBeenCalledWith('/fake/lavapipe', false)
+    expect(mockInfo).toHaveBeenCalledWith('✅ Done.')
+  })
+
   test('should install Lavapipe on Windows', async () => {
     // Mock inputs
     const mockInputs = {
@@ -454,10 +506,6 @@ describe('run', () => {
 
     // Mock Lavapipe installer
     ;(installer_lavapipe.installLavapipe as jest.MockedFunction<typeof installer_lavapipe.installLavapipe>).mockResolvedValue('/fake/lavapipe/path')
-    ;(installer_lavapipe.setupLavapipe as unknown as jest.Mock).mockReturnValue({
-      icd: ['/fake/lavapipe/icd.json'],
-      binPath: ['/fake/lavapipe/bin'],
-    })
 
     // Mock platform
     Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })

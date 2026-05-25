@@ -44,7 +44,7 @@ inputs:
     description: "The installation folder for SwiftShader. Default: see Readme."
     required: false
   install_lavapipe:
-    description: "Windows only. Installs Mesa's Lavapipe software rasterizer. Default: false."
+    description: "Installs Mesa's Lavapipe software rasterizer. Default: false. On Windows downloads pre-built binaries. On Linux installs via apt (mesa-vulkan-drivers)."
     required: false
   lavapipe_destination:
     description: "The installation folder for Lavapipe. Default: see Readme."

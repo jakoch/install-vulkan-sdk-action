@@ -4,26 +4,42 @@
  *----------------------------------------------------------------------------*/
 
 import { installLavapipe, getLatestVersion, verifyInstallation, setupLavapipe } from '../src/installer_lavapipe'
+import * as childProcess from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import * as platform from '../src/platform'
 import * as windows from '../src/windows'
 import * as tc from '@actions/tool-cache'
 import * as versionsRasterizers from '../src/versions_rasterizers'
 import * as http from '../src/http'
-import * as core from '@actions/core' // Import @actions/core for mocking
+import * as core from '@actions/core'
 import * as errors from '../src/errors'
 
 jest.mock('@actions/tool-cache')
 jest.mock('../src/versions_rasterizers')
 jest.mock('../src/http')
 jest.mock('../src/windows')
+jest.mock('node:child_process')
+
+const execSyncMock = childProcess.execSync as jest.Mock
+
+// Helper to set platform constants for a test block
+function setPlatform(config: { linux?: boolean; windows?: boolean }) {
+  Object.defineProperty(platform, 'IS_LINUX', { value: config.linux ?? false, configurable: true })
+  Object.defineProperty(platform, 'IS_LINUX_ARM', { value: false, configurable: true })
+  Object.defineProperty(platform, 'IS_WINDOWS', { value: config.windows ?? false, configurable: true })
+}
 
 describe('installer_lavapipe', () => {
   afterEach(() => {
     jest.clearAllMocks()
   })
 
-  describe('installLavapipe', () => {
+  describe('installLavapipe on Windows', () => {
+    beforeEach(() => {
+      setPlatform({ windows: true })
+    })
+
     it('should download and extract the lavapipe library', async () => {
       const mockDownloadUrl = 'https://example.com/lavapipe.zip'
       const mockArchivePath = '/path/to/archive.zip'
@@ -108,6 +124,23 @@ describe('installer_lavapipe', () => {
     })
   })
 
+  describe('installLavapipe on Linux', () => {
+    beforeEach(() => {
+      setPlatform({ linux: true })
+    })
+
+    it('should install lavapipe via apt', async () => {
+      execSyncMock.mockReturnValue(Buffer.from(''))
+
+      const result = await installLavapipe('/some/dest')
+
+      expect(execSyncMock).toHaveBeenCalledTimes(2)
+      expect(execSyncMock).toHaveBeenCalledWith('sudo apt-get update -qq', { stdio: 'inherit' })
+      expect(execSyncMock).toHaveBeenCalledWith('sudo apt-get install -y -qq mesa-vulkan-drivers', { stdio: 'inherit' })
+      expect(result).toBe('/usr')
+    })
+  })
+
   describe('getLatestVersion', () => {
     it('should return the download url and version for the latest lavapipe', async () => {
       const mockDownloadUrl = 'https://example.com/lavapipe.zip'
@@ -142,7 +175,11 @@ describe('installer_lavapipe', () => {
     })
   })
 
-  describe('verifyInstallation and setupLavapipe', () => {
+  describe('verifyInstallation and setupLavapipe on Windows', () => {
+    beforeEach(() => {
+      setPlatform({ windows: true })
+    })
+
     afterEach(() => {
       jest.restoreAllMocks()
     })
@@ -194,4 +231,5 @@ describe('installer_lavapipe', () => {
       spyInfo.mockRestore()
     })
   })
+
 })

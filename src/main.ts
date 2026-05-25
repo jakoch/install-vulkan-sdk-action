@@ -278,14 +278,19 @@ export async function run(): Promise<void> {
      * Install Lavapipe
      * ---------------------------------------------------------------------- */
 
-    if (platform.IS_WINDOWS && inputs.installLavapipe) {
+    if ((platform.IS_WINDOWS || platform.IS_LINUX || platform.IS_LINUX_ARM) && inputs.installLavapipe) {
       core.info(`🚀 Installing Lavapipe library...`)
       const lavapipeInstallPath = await installerLavapipe.installLavapipe(inputs.lavapipeDestination, inputs.useCache)
-      if (installerLavapipe.verifyInstallation(lavapipeInstallPath)) {
-        core.info(`ℹ️ [INFO] Path to Lavapipe: ${lavapipeInstallPath}`)
-        installerLavapipe.setupLavapipe(lavapipeInstallPath)
-      } else {
-        core.warning(`Could not find Lavapipe in ${lavapipeInstallPath}`)
+
+      // On Linux, apt-get exits non-zero on failure, so a successful return is authoritative.
+      // Skip verifyInstallation because it checks hardcoded system paths, not the returned path.
+      if (platform.IS_WINDOWS) {
+        if (installerLavapipe.verifyInstallation(lavapipeInstallPath)) {
+          core.info(`ℹ️ [INFO] Path to Lavapipe: ${lavapipeInstallPath}`)
+          installerLavapipe.setupLavapipe(lavapipeInstallPath)
+        } else {
+          core.warning(`Could not find Lavapipe in ${lavapipeInstallPath}`)
+        }
       }
     }
 
