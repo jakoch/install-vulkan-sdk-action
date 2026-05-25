@@ -14,6 +14,7 @@ import * as installerLavapipe from './installer_lavapipe'
 import * as installerSwiftshader from './installer_swiftshader'
 import * as installerVulkan from './installer_vulkan'
 import * as platform from './platform'
+import * as versions from './versions'
 import * as versionsVulkan from './versions_vulkan'
 
 /**
@@ -225,7 +226,12 @@ export async function run(): Promise<void> {
 
           // export LD_LIBRARY_PATH=$VULKAN_SDK/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
           const ldLibraryPath = process.env.LD_LIBRARY_PATH || ''
-          const vkLdLibraryPath = `${installPath}/lib:${ldLibraryPath}`
+          let vkLdLibraryPath = `${installPath}/lib`
+          // Starting from SDK 1.4.350.0, the loader is under lib/VulkanLoader/lib/
+          if (versions.compare(version, '1.4.350.0') >= 0) {
+            vkLdLibraryPath = `${installPath}/lib/VulkanLoader/lib:${vkLdLibraryPath}`
+          }
+          vkLdLibraryPath = `${vkLdLibraryPath}:${ldLibraryPath}`
           if (platform.IS_LINUX || platform.IS_LINUX_ARM) {
             core.exportVariable('LD_LIBRARY_PATH', vkLdLibraryPath)
             core.info(`✔️ [ENV] Set env variable LD_LIBRARY_PATH -> "${vkLdLibraryPath}".`)

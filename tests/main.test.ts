@@ -522,6 +522,56 @@ describe('run', () => {
     expect(mockWarning).toHaveBeenCalledWith('Could not find Vulkan SDK in /fake/sdk/path')
   })
 
+  test('should include VulkanLoader/lib in LD_LIBRARY_PATH for Linux >= 1.4.350.0', async () => {
+    // Mock inputs
+    const mockInputs = {
+      version: '1.4.350.0',
+      destination: '/fake/dest',
+      optionalComponents: [],
+      useCache: false,
+      cacheSaveIf: true,
+      stripdown: false,
+      installRuntime: false,
+      installRuntimeOnly: false,
+      installSwiftshader: false,
+      installLavapipe: false,
+      swiftshaderDestination: '',
+      lavapipeDestination: '',
+      githubToken: ''
+    }
+    ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
+
+    ;(versionsVulkan.resolveVersion as jest.MockedFunction<typeof versionsVulkan.resolveVersion>).mockResolvedValue('1.4.350.0')
+
+    ;(downloader.downloadVulkanSdk as jest.MockedFunction<typeof downloader.downloadVulkanSdk>).mockResolvedValue('/fake/download/path')
+
+    ;(installer_vulkan.installVulkanSdk as jest.MockedFunction<typeof installer_vulkan.installVulkanSdk>).mockResolvedValue('/fake/install/path')
+    ;(installer_vulkan.getVulkanSdkPath as jest.MockedFunction<typeof installer_vulkan.getVulkanSdkPath>).mockReturnValue('/fake/sdk/path')
+    ;(installer_vulkan.verifyInstallationOfSdk as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfSdk>).mockReturnValue(true)
+
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: false, writable: true })
+    Object.defineProperty(platform, 'IS_LINUX', { value: true, writable: true })
+
+    const originalEnv = process.env.LD_LIBRARY_PATH
+    process.env.LD_LIBRARY_PATH = '/existing/path'
+
+    const mockAddPath = jest.fn()
+    const mockExportVariable = jest.fn()
+    const mockInfo = jest.fn()
+    ;(core.addPath as jest.MockedFunction<typeof core.addPath>).mockImplementation(mockAddPath)
+    ;(core.exportVariable as jest.MockedFunction<typeof core.exportVariable>).mockImplementation(mockExportVariable)
+    ;(core.info as jest.MockedFunction<typeof core.info>).mockImplementation(mockInfo)
+
+    await main.run()
+
+    expect(mockExportVariable).toHaveBeenCalledWith(
+      'LD_LIBRARY_PATH',
+      '/fake/sdk/path/lib/VulkanLoader/lib:/fake/sdk/path/lib:/existing/path'
+    )
+
+    process.env.LD_LIBRARY_PATH = originalEnv
+  })
+
   test('should set DYLD_LIBRARY_PATH on macOS', async () => {
     // Mock inputs
     const mockInputs = {

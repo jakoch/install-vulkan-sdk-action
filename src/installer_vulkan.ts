@@ -44,6 +44,7 @@ export async function installVulkanSdk(
   } else if (platform.IS_LINUX || platform.IS_LINUX_ARM) {
     // the archive extracts a "1.3.250.1" top-level dir
     installPath = await installVulkanSdkLinux(sdkPath, destination, optionalComponents)
+    ensureVulkanLoaderSymlinks(installPath, version)
   } else if (platform.IS_WINDOWS || platform.IS_WINDOWS_ARM) {
     installPath = await installVulkanSdkWindows(sdkPath, versionizedDestinationPath, optionalComponents)
   }
@@ -71,6 +72,54 @@ export async function installVulkanSdkLinux(
   const installPath = await archive.extract(sdkPath, destination)
 
   return installPath
+}
+
+/**
+ * Ensure symlinks for the VulkanLoader library are present.
+ *
+ * Starting from Vulkan SDK 1.4.350.0, the Linux packaging moves the loader
+ * library under lib/VulkanLoader/lib/. This creates symlinks in the expected
+ * location (lib/) so that CMake's FindVulkan module can find the library.
+ *
+ * @param {string} installPath - The installation path of the Vulkan SDK.
+ * @param {string} version - The Vulkan SDK version.
+ */
+export function ensureVulkanLoaderSymlinks(installPath: string, version: string): void {
+  if (!(platform.IS_LINUX || platform.IS_LINUX_ARM)) return
+  if (version < '1.4.350.0') return
+
+  const sdkLibDir = path.join(installPath, 'lib')
+  const vulkanLoaderLibDir = path.join(sdkLibDir, 'VulkanLoader', 'lib')
+
+  if (!fs.existsSync(vulkanLoaderLibDir)) {
+    core.warning(`VulkanLoader/lib directory not found at ${vulkanLoaderLibDir}. Symlinks not created.`)
+    return
+  }
+
+  core.info(`🔗 Creating VulkanLoader lib symlinks in ${sdkLibDir}`)
+
+  // Create libvulkan.so.1 -> VulkanLoader/lib/libvulkan.so.1 (runtime symlink)
+  const so1Link = path.join(sdkLibDir, 'libvulkan.so.1')
+  createSymlink('VulkanLoader/lib/libvulkan.so.1', so1Link)
+
+  // Create libvulkan.so -> libvulkan.so.1 (development symlink)
+  const soLink = path.join(sdkLibDir, 'libvulkan.so')
+  createSymlink('libvulkan.so.1', soLink)
+}
+
+/**
+ * Create a symlink, removing any existing file/symlink at the target path first.
+ *
+ * @param {string} target - The symlink target (relative or absolute path).
+ * @param {string} linkPath - The path where the symlink will be created.
+ */
+function createSymlink(target: string, linkPath: string): void {
+  try {
+    fs.unlinkSync(linkPath)
+  } catch {
+    // Path does not exist, that's fine
+  }
+  fs.symlinkSync(target, linkPath, 'file')
 }
 
 /**

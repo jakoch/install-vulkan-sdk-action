@@ -60,6 +60,132 @@ describe('installer_vulkan', () => {
     expect(archive.extract).toHaveBeenCalledWith(sdkPath, destination)
   })
 
+  it('ensureVulkanLoaderSymlinks creates symlinks for Linux >= 1.4.350.0 when VulkanLoader/lib exists', () => {
+    Object.defineProperty(platform, 'IS_LINUX', { value: true, configurable: true })
+
+    const sdkBase = path.join(tmpRoot, 'vulkan_loader_symlinks')
+    const libDir = path.join(sdkBase, 'lib')
+    const loaderLibDir = path.join(libDir, 'VulkanLoader', 'lib')
+    fs.mkdirSync(loaderLibDir, { recursive: true })
+    // create a dummy so file so the symlink has a real target
+    fs.writeFileSync(path.join(loaderLibDir, 'libvulkan.so.1'), 'dummy')
+
+    installer.ensureVulkanLoaderSymlinks(sdkBase, '1.4.350.0')
+
+    // Verify symlinks were created
+    const so1Link = path.join(libDir, 'libvulkan.so.1')
+    const soLink = path.join(libDir, 'libvulkan.so')
+    expect(fs.existsSync(so1Link)).toBe(true)
+    expect(fs.existsSync(soLink)).toBe(true)
+    // Verify the symlinks are actual symlinks (not copies)
+    expect(fs.lstatSync(so1Link).isSymbolicLink()).toBe(true)
+    expect(fs.lstatSync(soLink).isSymbolicLink()).toBe(true)
+    // Verify the symlink targets
+    expect(fs.readlinkSync(so1Link)).toBe('VulkanLoader/lib/libvulkan.so.1')
+    expect(fs.readlinkSync(soLink)).toBe('libvulkan.so.1')
+    // Verify the chain resolves to the real file
+    expect(fs.realpathSync(soLink)).toBe(path.resolve(loaderLibDir, 'libvulkan.so.1'))
+  })
+
+  it('ensureVulkanLoaderSymlinks does nothing for version < 1.4.350.0 on Linux', () => {
+    Object.defineProperty(platform, 'IS_LINUX', { value: true, configurable: true })
+
+    const sdkBase = path.join(tmpRoot, 'vulkan_loader_old')
+    const libDir = path.join(sdkBase, 'lib')
+    fs.mkdirSync(libDir, { recursive: true })
+
+    installer.ensureVulkanLoaderSymlinks(sdkBase, '1.4.349.1')
+
+    // No symlinks should be created
+    expect(fs.existsSync(path.join(libDir, 'libvulkan.so.1'))).toBe(false)
+    expect(fs.existsSync(path.join(libDir, 'libvulkan.so'))).toBe(false)
+  })
+
+  it('ensureVulkanLoaderSymlinks does nothing on non-Linux platforms', () => {
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: true, configurable: true })
+    Object.defineProperty(platform, 'IS_LINUX', { value: false, configurable: true })
+
+    const sdkBase = path.join(tmpRoot, 'vulkan_loader_win')
+    const libDir = path.join(sdkBase, 'lib')
+    fs.mkdirSync(libDir, { recursive: true })
+
+    installer.ensureVulkanLoaderSymlinks(sdkBase, '1.4.350.0')
+
+    // No symlinks should be created
+    expect(fs.existsSync(path.join(libDir, 'libvulkan.so.1'))).toBe(false)
+    expect(fs.existsSync(path.join(libDir, 'libvulkan.so'))).toBe(false)
+  })
+
+  it('ensureVulkanLoaderSymlinks warns when VulkanLoader/lib is missing', () => {
+    const core = require('@actions/core')
+    const spyWarning = jest.spyOn(core, 'warning').mockImplementation(() => undefined)
+
+    Object.defineProperty(platform, 'IS_LINUX', { value: true, configurable: true })
+
+    const sdkBase = path.join(tmpRoot, 'vulkan_loader_missing')
+    const libDir = path.join(sdkBase, 'lib')
+    fs.mkdirSync(libDir, { recursive: true })
+    // Do NOT create VulkanLoader/lib directory
+
+    installer.ensureVulkanLoaderSymlinks(sdkBase, '1.4.350.0')
+
+    // Verify warning was issued
+    expect(spyWarning).toHaveBeenCalledWith(
+      expect.stringContaining('VulkanLoader/lib directory not found')
+    )
+    // No symlinks should be created
+    expect(fs.existsSync(path.join(libDir, 'libvulkan.so.1'))).toBe(false)
+    expect(fs.existsSync(path.join(libDir, 'libvulkan.so'))).toBe(false)
+
+    spyWarning.mockRestore()
+  })
+
+  it('ensureVulkanLoaderSymlinks works on Linux ARM', () => {
+    Object.defineProperty(platform, 'IS_LINUX', { value: false, configurable: true })
+    Object.defineProperty(platform, 'IS_LINUX_ARM', { value: true, configurable: true })
+
+    const sdkBase = path.join(tmpRoot, 'vulkan_loader_arm')
+    const libDir = path.join(sdkBase, 'lib')
+    const loaderLibDir = path.join(libDir, 'VulkanLoader', 'lib')
+    fs.mkdirSync(loaderLibDir, { recursive: true })
+    fs.writeFileSync(path.join(loaderLibDir, 'libvulkan.so.1'), 'dummy')
+
+    installer.ensureVulkanLoaderSymlinks(sdkBase, '1.4.350.0')
+
+    const so1Link = path.join(libDir, 'libvulkan.so.1')
+    const soLink = path.join(libDir, 'libvulkan.so')
+    expect(fs.existsSync(so1Link)).toBe(true)
+    expect(fs.existsSync(soLink)).toBe(true)
+    expect(fs.lstatSync(so1Link).isSymbolicLink()).toBe(true)
+  })
+
+  it('installVulkanSdk should call ensureVulkanLoaderSymlinks for Linux >= 1.4.350.0', async () => {
+    Object.defineProperty(platform, 'IS_LINUX', { value: true, configurable: true })
+    Object.defineProperty(platform, 'IS_LINUX_ARM', { value: false, configurable: true })
+
+    const sdkPath = '/some/sdk.tar.gz'
+    const destination = path.join(tmpRoot, 'linux_dispatch')
+    const version = '1.4.350.0'
+    const fakeInstall = path.join(destination, '1.4.350.0')
+
+    // Mock archive.extract to simulate extraction
+    ;(archive.extract as jest.Mock) = jest.fn().mockResolvedValue(fakeInstall)
+
+    // Set up lib/VulkanLoader/lib directory before dispatch
+    const libDir = path.join(fakeInstall, 'lib')
+    const loaderLibDir = path.join(libDir, 'VulkanLoader', 'lib')
+    fs.mkdirSync(loaderLibDir, { recursive: true })
+    fs.writeFileSync(path.join(loaderLibDir, 'libvulkan.so.1'), 'dummy')
+
+    const ret = await installer.installVulkanSdk(sdkPath, destination, version, [])
+
+    // Verify symlinks were created
+    expect(fs.existsSync(path.join(libDir, 'libvulkan.so.1'))).toBe(true)
+    expect(fs.existsSync(path.join(libDir, 'libvulkan.so'))).toBe(true)
+    expect(fs.lstatSync(path.join(libDir, 'libvulkan.so')).isSymbolicLink()).toBe(true)
+    expect(ret).toBe(fakeInstall)
+  })
+
   it('installVulkanSdkMacDmg and MacZip should call execSync and return destination', async () => {
     // mock execSync
     ;(child.execSync as jest.Mock).mockImplementation(() => Buffer.from(''))
