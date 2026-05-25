@@ -21,3 +21,6 @@ coverage
 
 # NPM audit report
 audit.json
+
+# Integration test build folder
+build/

@@ -132,38 +132,16 @@ jobs:
           echo DYLD_LIBRARY_PATH = $DYLD_LIBRARY_PATH
           echo Folder size = `du -hs $VULKAN_SDK`
 
-      - name: Verify Vulkan with CMake (Linux/macOS)
-        if: contains(matrix.config.OS, 'ubuntu') || contains(matrix.config.OS, 'mac')
+      # The integration test requires: CMake, C++ compiler, Vulkan SDK
+      - name: Verify Vulkan with CMake
         run: |
-          mkdir -p cmake-test && cd cmake-test
-          cat > CMakeLists.txt << 'EOF'
-          cmake_minimum_required(VERSION 3.10)
-          project(VulkanTest)
-          find_package(Vulkan REQUIRED)
-          message(STATUS "Vulkan found: ${Vulkan_FOUND}")
-          message(STATUS "Vulkan libraries: ${Vulkan_LIBRARIES}")
-          message(STATUS "Vulkan include dir: ${Vulkan_INCLUDE_DIR}")
-          message(STATUS "Vulkan version: ${Vulkan_VERSION}")
-          EOF
-          cmake .
-
-      - name: Verify Vulkan with CMake (Windows)
-        if: contains(matrix.config.OS, 'windows')
-        shell: pwsh
-        run: |
-          mkdir cmake-test
-          Set-Location cmake-test
-          $cmakeContent = @'
-          cmake_minimum_required(VERSION 3.10)
-          project(VulkanTest)
-          find_package(Vulkan REQUIRED)
-          message(STATUS "Vulkan found: ${Vulkan_FOUND}")
-          message(STATUS "Vulkan libraries: ${Vulkan_LIBRARIES}")
-          message(STATUS "Vulkan include dir: ${Vulkan_INCLUDE_DIR}")
-          message(STATUS "Vulkan version: ${Vulkan_VERSION}")
-          '@
-          Set-Content -Path CMakeLists.txt -Value $cmakeContent
-          cmake .
+          cmake -S tests/integration -B build
+          cmake --build build
+          if [ -f ./build/vulkan_integration_test.exe ]; then
+            ./build/vulkan_integration_test.exe
+          else
+            ./build/vulkan_integration_test
+          fi
 
 # ---------------------------------------------------------------------------------------
 
