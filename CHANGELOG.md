@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.5.5] - 2026-05-26
+
+### Fixed
+- raise Node version to 24 to avoid Node20 deprecation warning
+
 ## [1.5.4] - 2026-05-25
 
 ### Fixed
@@ -257,7 +262,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Section for Reference Links -->
 
-[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.4...HEAD
+[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.5...HEAD
+[1.5.5]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.4...v1.5.5
 [1.5.4]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.1...v1.5.2
