@@ -242,6 +242,7 @@ export function getInputVulkanOptionalComponents(optionalComponents: string): st
     'com.lunarg.vulkan.debug32',
     'com.lunarg.vulkan.arm64',
     'com.lunarg.vulkan.x64',
+    'com.lunarg.vulkan.ios',
     // components of old installers
     'com.lunarg.vulkan.thirdparty',
     'com.lunarg.vulkan.debug'
