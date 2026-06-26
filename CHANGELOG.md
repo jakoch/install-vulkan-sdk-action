@@ -11,6 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.6.0] - 2026-06-26
+
+### Changed
+- replaced `@vercel/ncc` with `esbuild` for bundling (ncc can't bundle ESM-only packages)
+- dropped intermediate `tsc` step: esbuild compiles TypeScript directly
+- migrated build output from CJS to ESM
+
+### Added
+- `typecheck` script: `tsc --noEmit` for type-checking only
+- Jest `moduleNameMapper` + manual mocks for ESM-only `@actions/*` packages
+
+### Updated
+- all `@actions/*` deps to latest major versions (ESM-only)
+- `@types/node` → 26, `typescript` → 6, `esbuild` → 0.28
+
+### Removed
+- `@vercel/ncc`
+- `lib/` output folder
+- `dist/*.js.map` source maps
+
 ## [1.5.5] - 2026-05-26
 
 ### Fixed
@@ -262,7 +282,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Section for Reference Links -->
 
-[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.5...HEAD
+[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.5...v1.6.0
 [1.5.5]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.4...v1.5.5
 [1.5.4]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.2...v1.5.3
