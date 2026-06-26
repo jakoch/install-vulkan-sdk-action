@@ -4,10 +4,11 @@
   "private": true,
   "description": "A Github Action installing the Vulkan SDK and Runtime.",
   "author": "Jens A. Koch",
+  "type": "module",
   "license": "MIT",
   "homepage": "https://github.com/jakoch/install-vulkan-sdk-action#readme",
   "scripts": {
-    "build": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=esm --outfile=dist/index.js --minify --legal-comments=external",
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=esm --outfile=dist/index.js --minify --legal-comments=external --banner:js='import{createRequire as __createRequire}from\"module\";var require=__createRequire(import.meta.url);'",
     "format:check": "npx @biomejs/biome format",
     "format:write": "npx @biomejs/biome format --write",
     "lint:check": "npx @biomejs/biome lint",
@@ -27,7 +28,8 @@
     "prepare": "husky",
     "pre-commit": "npm run all",
     "all": "npm run format:write && npm run typecheck && npm run npm:audit && npm run package && npm test",
-    "_comment_1": "devDependency: @github/local-action ^7.0.0 is required for local testing (local:run), but was removed due to audit issues."
+    "_comment_1": "devDependency: @github/local-action ^7.0.0 is required for local testing (local:run), but was removed due to audit issues.",
+    "_comment_2": "jest.config.js renamed to jest.config.cjs because package.json has type: module. Jest config uses module.exports (CJS)."
   },
   "keywords": [
     "actions",
