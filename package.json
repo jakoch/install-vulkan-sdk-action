@@ -7,13 +7,14 @@
   "license": "MIT",
   "homepage": "https://github.com/jakoch/install-vulkan-sdk-action#readme",
   "scripts": {
-    "build": "tsc",
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=esm --outfile=dist/index.js --minify --legal-comments=external",
     "format:check": "npx @biomejs/biome format",
     "format:write": "npx @biomejs/biome format --write",
     "lint:check": "npx @biomejs/biome lint",
     "lint:fix": "npx @biomejs/biome lint --write",
     "local:run": "npx @github/local-action run . ./src/main.ts env.local",
-    "package": "ncc build --source-map --minify",
+    "typecheck": "tsc --noEmit",
+    "package": "npm run build",
     "test": "jest --verbose --detectOpenHandles --runInBand",
     "test:cov": "jest --verbose --coverage",
     "test:nocache": "jest --verbose --detectOpenHandles --runInBand --no-cache",
@@ -25,7 +26,7 @@
     "npm:update": "npm update --no-audit --strict-peer-deps",
     "prepare": "husky",
     "pre-commit": "npm run all",
-    "all": "npm run format:write && npm run build && npm run npm:audit && npm run package && npm test",
+    "all": "npm run format:write && npm run typecheck && npm run npm:audit && npm run package && npm test",
     "_comment_1": "devDependency: @github/local-action ^7.0.0 is required for local testing (local:run), but was removed due to audit issues."
   },
   "keywords": [
@@ -35,23 +36,23 @@
     "setup",
     "install"
   ],
-  "main": "lib/main.js",
+  "main": "dist/index.js",
   "dependencies": {
-    "@actions/cache": "^5",
-    "@actions/core": "^2",
-    "@actions/http-client": "^3",
-    "@actions/io": "^2",
-    "@actions/tool-cache": "^3"
+    "@actions/cache": "^6",
+    "@actions/core": "^3",
+    "@actions/http-client": "^4",
+    "@actions/io": "^3",
+    "@actions/tool-cache": "^4"
   },
   "devDependencies": {
     "@biomejs/biome": "^2",
     "@types/jest": "^30",
-    "@types/node": "^25.0",
-    "@vercel/ncc": "^0.38.4",
+    "@types/node": "^26.0",
+    "esbuild": "^0.28.0",
     "husky": "^9.1.7",
     "jest": "^30",
     "ts-jest": "^29",
-    "typescript": "^5.9.2"
+    "typescript": "^6.0"
   },
   "repository": {
     "type": "git",

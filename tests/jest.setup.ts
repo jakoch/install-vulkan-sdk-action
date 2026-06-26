@@ -10,36 +10,6 @@ env.RUNNER_TEMP = path.join(__dirname, '../tmp/runner_tmpdir')
 
 jest.setTimeout(30000) // 30 second timeout
 
-// The '@actions/http-client' module is mocked,
-// so that when `src/http.ts` constructs the `client` at import time,
-// it uses this mocked HttpClient. Its prototype methods are jest.fn.
-// This allows tests to spy on `httpm.HttpClient.prototype.get`,`head`,`getJson`.
-
-const proto: Record<string, jest.Mock> = {
-  get: jest.fn(),
-  head: jest.fn(),
-  getJson: jest.fn()
-}
-
-class MockHttpClient {
-  constructor() {
-    // nothing
-  }
-}
-
-// Attach mocks to prototype
-// so that `jest.spyOn(HttpClient.prototype, 'head')` works in tests
-// and the instance methods are the same mocks.
-;(MockHttpClient.prototype as any).get = proto.get
-;(MockHttpClient.prototype as any).head = proto.head
-;(MockHttpClient.prototype as any).getJson = proto.getJson
-
-jest.mock('@actions/http-client', () => ({
-  HttpClient: MockHttpClient
-}))
-
-export {}
-
 // - intercept native http/https to prove tests don't perform real network requests
 // - invocation will be recorded to `global.__networkAttempts` and will fail the test
 import http from 'node:http'

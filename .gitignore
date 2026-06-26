@@ -24,3 +24,6 @@ audit.json
 
 # Integration test build folder
 build/
+
+# Source maps (they are not needed by Github Action users)
+dist/*.map

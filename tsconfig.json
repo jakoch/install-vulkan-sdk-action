@@ -1,6 +1,7 @@
 {
   // biome-ignore format: keep aligned comments
   "compilerOptions": {
+    "types": ["jest", "node"],                 // TS 6 dropped auto @types/* resolution; explicitly list them.
     "target": "ES2020",                        // Specify ECMAScript target version.
     "module": "CommonJS",                      // Specify module code generation.
     "newLine": "lf",                           // End of line sequence = lf = (unix)
@@ -15,6 +16,7 @@
     "forceConsistentCasingInFileNames": true,  // Disallow inconsistently-cased references to the same file.
     "useDefineForClassFields": false,          // Emit a class field definition with a declare modifier when a field is declared.
     "sourceMap": true,                         // Generates corresponding '.map' file.
+    "noEmit": true,                            // esbuild handles compilation; tsc is for type-checking only
   },
   "exclude": ["node_modules", "tests"]
 }
