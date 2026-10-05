@@ -26,7 +26,7 @@ export interface GithubRelease {
 /**
  * Singleton to store the GitHub token so modules don't need to pass it around.
  */
-class GithubTokenStore {
+export class GithubTokenStore {
   private token?: string
 
   setToken(token: string) {

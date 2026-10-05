@@ -169,26 +169,6 @@ describe('versions_vulkan', () => {
       infoSpy.mockRestore()
     })
 
-    it('should handle null latest version result without failing', async () => {
-      // Inject getLatestVersions returning null so resolveVersion receives
-      // latestVersion === null. Note that the real getLatestVersions throws
-      // rather than returning null, so this branch is only reachable via
-      // the injectable dependency.
-      const getLatestVersionsMock = jest.fn().mockResolvedValue(null)
-
-      Object.defineProperty(platform, 'IS_LINUX', { value: true })
-      const infoSpy = jest.spyOn(core, 'info').mockImplementation(() => undefined)
-      const setFailedSpy = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
-
-      const result = await resolveVersion('latest', getLatestVersionsMock)
-      expect(result).toBe('latest')
-      expect(infoSpy).not.toHaveBeenCalled()
-      expect(setFailedSpy).not.toHaveBeenCalled()
-
-      infoSpy.mockRestore()
-      setFailedSpy.mockRestore()
-    })
-
     it('should return the passed version if it is not "latest"', async () => {
       const result = await resolveVersion('1.3.296.0')
       expect(result).toBe('1.3.296.0')

@@ -57,6 +57,28 @@ describe('downloader', () => {
       const sdkPath = await downloadVulkanSdk(version)
       expect(sdkPath).toBe(expectedPath)
     })
+
+    it('should skip SHA verification for a custom ARM build', async () => {
+      Object.defineProperty(platform, 'IS_WINDOWS', { value: false, configurable: true })
+      Object.defineProperty(platform, 'IS_LINUX_ARM', { value: true, configurable: true })
+
+      const version = '1.4.304.0'
+      const url = `https://github.com/jakoch/vulkan-sdk-arm/releases/download/${version}/vulkansdk-ubuntu-24.04-arm-${version}.tar.xz`
+
+      jest.spyOn(require('../src/downloader'), 'getUrlVulkanSdk').mockResolvedValue(url)
+      ;(tc.downloadTool as jest.Mock).mockResolvedValueOnce('/tmp/vulkansdk-arm.tar.xz')
+      const fetchExpectedShaSpy = jest.spyOn(require('../src/downloader'), 'fetchExpectedSha').mockResolvedValue('sha')
+      const compareFileShaSpy = jest.spyOn(require('../src/verify'), 'compareFileSha').mockResolvedValue(true)
+
+      const sdkPath = await downloadVulkanSdk(version)
+
+      expect(sdkPath).toBe('/tmp/vulkansdk-arm.tar.xz')
+      // The ARM build is not published on the LunarG SHA API, so neither
+      // fetchExpectedSha nor compareFileSha may run for it.
+      expect(fetchExpectedShaSpy).not.toHaveBeenCalled()
+      expect(compareFileShaSpy).not.toHaveBeenCalled()
+      expect(core.info).toHaveBeenCalledWith(expect.stringContaining('Skipping SHA verification'))
+    })
   })
 
   describe('downloadVulkanRuntime', () => {
@@ -346,6 +368,25 @@ describe('downloader', () => {
 
       try {
         await expect(fetchExpectedSha('1.4.304.0', 'vulkan_sdk.tar.xz')).rejects.toThrow('Unexpected response shape from Lunarg SHA API')
+      } finally {
+        if (originalJestWorkerId) {
+          process.env.JEST_WORKER_ID = originalJestWorkerId
+        }
+      }
+    })
+
+    it('fetchExpectedSha propagates a JSON parse error for a malformed body', async () => {
+      jest.spyOn(platform, 'getPlatform').mockReturnValue('linux')
+      // A body that is not valid JSON at all, so JSON.parse throws and the
+      // inner catch rejects with the parse error.
+      const httpDownloadMock = http.download as jest.Mock
+      httpDownloadMock.mockResolvedValue('this is not json {{{')
+
+      const originalJestWorkerId = process.env.JEST_WORKER_ID
+      delete process.env.JEST_WORKER_ID
+
+      try {
+        await expect(fetchExpectedSha('1.4.304.0', 'vulkan_sdk.tar.xz')).rejects.toThrow(SyntaxError)
       } finally {
         if (originalJestWorkerId) {
           process.env.JEST_WORKER_ID = originalJestWorkerId

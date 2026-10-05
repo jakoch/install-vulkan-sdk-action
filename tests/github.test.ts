@@ -5,7 +5,7 @@
 
 import * as http from '../src/http'
 import * as core from '@actions/core'
-import { getLatestRelease, getLatestVersion, type GithubRelease } from '../src/github'
+import { getLatestRelease, getLatestVersion, githubTokenStore, GithubTokenStore, type GithubRelease } from '../src/github'
 
 jest.mock('../src/http')
 jest.mock('@actions/core')
@@ -82,5 +82,79 @@ describe('GitHub Release API', () => {
 
     expect(core.error).toHaveBeenCalledWith(expect.stringContaining('Error while fetching the latest release version'))
     expect(version).toBeNull()
+  })
+
+  // githubTokenStore is a module-level singleton whose setToken() ignores later
+  // calls once a token is stored, so the auth tests pin the state they need.
+  test('getLatestRelease should pass an Authorization header when a token is set', async () => {
+    ;(http.client.getJson as jest.Mock).mockResolvedValue({ result: mockRelease })
+    githubTokenStore.setToken('secret-token-value')
+
+    await getLatestRelease('owner', 'repo')
+
+    expect(http.client.getJson).toHaveBeenCalledWith('https://api.github.com/repos/owner/repo/releases/latest', {
+      Authorization: 'Bearer secret-token-value'
+    })
+    // The token is registered as a secret so it is masked in logs.
+    expect(core.setSecret).toHaveBeenCalledWith('secret-token-value')
+  })
+
+  test('getLatestRelease should hint at rate limits when unauthenticated', async () => {
+    let fresh: typeof import('../src/github')
+    let freshHttp: typeof import('../src/http')
+    let freshCore: typeof import('@actions/core')
+    jest.isolateModules(() => {
+      freshHttp = require('../src/http')
+      freshCore = require('@actions/core')
+      fresh = require('../src/github')
+    })
+    ;(freshHttp!.client.getJson as jest.Mock).mockResolvedValue({ result: mockRelease })
+
+    await fresh!.getLatestRelease('owner', 'repo')
+
+    // The unauthenticated branch calls getJson(url) with no headers argument.
+    expect(freshHttp!.client.getJson).toHaveBeenCalledWith('https://api.github.com/repos/owner/repo/releases/latest')
+    expect(freshCore!.info).toHaveBeenCalledWith(expect.stringContaining('rate limits'))
+  })
+})
+
+describe('githubTokenStore', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  test('setToken should register a non-empty token as a secret', () => {
+    const store = new GithubTokenStore()
+
+    store.setToken('abc123')
+
+    expect(store.getToken()).toBe('abc123')
+    expect(core.setSecret).toHaveBeenCalledWith('abc123')
+  })
+
+  test('setToken should not register an empty token as a secret', () => {
+    const store = new GithubTokenStore()
+
+    store.setToken('')
+
+    expect(store.getToken()).toBe('')
+    expect(core.setSecret).not.toHaveBeenCalled()
+  })
+
+  test('setToken should keep the first token and ignore later calls', () => {
+    const store = new GithubTokenStore()
+
+    store.setToken('first-token')
+    store.setToken('second-token')
+
+    expect(store.getToken()).toBe('first-token')
+    expect(core.setSecret).toHaveBeenCalledTimes(1)
+    expect(core.setSecret).toHaveBeenCalledWith('first-token')
+  })
+
+  test('getToken should return undefined when no token was set', () => {
+    const store = new GithubTokenStore()
+
+    expect(store.getToken()).toBeUndefined()
   })
 })

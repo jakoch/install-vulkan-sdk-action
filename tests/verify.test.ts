@@ -150,4 +150,53 @@ describe('verify helpers', () => {
     errorSpy.mockRestore()
     setFailedSpy.mockRestore()
   })
+
+// Mock node:fs before loading src/verify so the throw originates inside its
+  // try block. isolateModules is synchronous, so the module and spies are captured
+  // there and the promise is awaited outside.
+  const runCompareFileShaWithThrowingFs = async (
+    thrown: unknown,
+    failOnMismatch: boolean
+  ): Promise<{ result: boolean; errorSpy: jest.SpyInstance; setFailedSpy: jest.SpyInstance }> => {
+    let result!: boolean
+    let errorSpy!: jest.SpyInstance
+    let setFailedSpy!: jest.SpyInstance
+    let promise!: Promise<boolean>
+
+    // The Jest bypass is checked synchronously on entry, so clear this first.
+    delete process.env.JEST_WORKER_ID
+
+    jest.isolateModules(() => {
+      jest.doMock('node:fs', () => ({
+        ...jest.requireActual('node:fs'),
+        existsSync: () => {
+          throw thrown
+        }
+      }))
+      const verifyModule = require('../src/verify')
+      const core = require('@actions/core')
+      errorSpy = jest.spyOn(core, 'error').mockImplementation(() => undefined)
+      setFailedSpy = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
+      promise = verifyModule.compareFileSha(filePath, 'irrelevant', failOnMismatch)
+    })
+
+    result = await promise
+    return { result, errorSpy, setFailedSpy }
+  }
+
+  it('compareFileSha catch block handles a non-Error throw', async () => {
+    const { result, errorSpy, setFailedSpy } = await runCompareFileShaWithThrowingFs('plain string failure', true)
+
+    expect(result).toBe(false)
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('plain string failure'))
+    expect(setFailedSpy).toHaveBeenCalledWith(expect.stringContaining('plain string failure'))
+  })
+
+  it('compareFileSha catch block does not call setFailed when failOnMismatch=false', async () => {
+    const { result, errorSpy, setFailedSpy } = await runCompareFileShaWithThrowingFs(new Error('boom'), false)
+
+    expect(result).toBe(false)
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('boom'))
+    expect(setFailedSpy).not.toHaveBeenCalled()
+  })
 })

@@ -10,208 +10,109 @@ import * as platform from '../src/platform'
 jest.mock('node:os')
 jest.mock('node:fs')
 
+// Load a fresh copy of the real src/platform module with node:os stubbed.
+// Mocking src/platform itself would only assert that a jest.fn() returns the
+// value it was handed, so the real code would never run.
+const loadPlatform = (opts: { platform: NodeJS.Platform; arch: string; homedir?: string; tmpdir?: string }) => {
+  let loaded: typeof import('../src/platform')
+  jest.isolateModules(() => {
+    const isolatedOs = require('node:os') as jest.Mocked<typeof import('node:os')>
+    isolatedOs.platform.mockReturnValue(opts.platform)
+    isolatedOs.arch.mockReturnValue(opts.arch as NodeJS.Architecture)
+    isolatedOs.homedir.mockReturnValue(opts.homedir ?? '/home/user')
+    isolatedOs.tmpdir.mockReturnValue(opts.tmpdir ?? '/tmp')
+    loaded = require('../src/platform')
+  })
+  return loaded!
+}
+
 describe('Platform constants', () => {
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
-
-  test('platform.HOME_DIR should return the home directory', () => {
-    jest.resetModules()
-    jest.doMock('../src/platform', () => ({
-      __esModule: true,
-      IS_LINUX: jest.fn().mockReturnValue(true),
-      OS_PLATFORM: 'linux',
-      HOME_DIR: '/home/user'
-    }))
-    ;(os.platform as jest.Mock).mockReturnValue('linux')
-
-    const mockedPlatform = require('../src/platform')
-
-    expect(os.platform()).toBe('linux')
-    expect(mockedPlatform.OS_PLATFORM).toBe('linux')
-    expect(mockedPlatform.HOME_DIR).toBe('/home/user')
-  })
-
-  test('platform.OS_ARCH should return the architecture', () => {
-    jest.resetModules()
-    jest.doMock('../src/platform', () => ({
-      __esModule: true,
-      OS_ARCH: 'x64'
-    }))
-    ;(os.arch as jest.Mock).mockReturnValue('x64')
-
-    const mockedPlatform = require('../src/platform')
-
-    expect(os.arch()).toBe('x64')
-    expect(mockedPlatform.OS_ARCH).toBe('x64')
-  })
-
-  test('platform.IS_WINDOWS should return true if the platform is windows', () => {
-    jest.resetModules()
-    jest.doMock('../src/platform', () => ({
-      __esModule: true,
-      OS_PLATFORM: 'win32',
-      IS_WINDOWS: true
-    }))
-    ;(os.platform as jest.Mock).mockReturnValue('win32')
-
-    const mockedPlatform = require('../src/platform')
-
-    expect(os.platform()).toBe('win32')
-    expect(mockedPlatform.OS_PLATFORM).toBe('win32')
-    expect(mockedPlatform.IS_WINDOWS).toBe(true)
-  })
-
-  test('platform.IS_WINDOWS_ARM should return true if the platform is windows arm', () => {
-    jest.resetModules()
-    jest.doMock('../src/platform', () => ({
-      __esModule: true,
-      OS_PLATFORM: 'win32',
-      OS_ARCH: 'arm64',
-      IS_WINDOWS: true,
-      IS_WINDOWS_ARM: true
-    }))
-    ;(os.platform as jest.Mock).mockReturnValue('win32')
-    ;(os.arch as jest.Mock).mockReturnValue('arm64')
-
-    const mockedPlatform = require('../src/platform')
-
-    expect(os.platform()).toBe('win32')
-    expect(os.arch()).toBe('arm64')
-    expect(mockedPlatform.IS_WINDOWS).toBe(true)
-    expect(mockedPlatform.OS_ARCH).toBe('arm64')
-    expect(mockedPlatform.IS_WINDOWS_ARM).toBe(true)
-  })
-
-  test('platform.IS_LINUX_ARM should return true if the platform is linux arm', () => {
-    jest.resetModules()
-    jest.doMock('../src/platform', () => ({
-      __esModule: true,
-      OS_PLATFORM: 'linux',
-      OS_ARCH: 'arm64',
-      IS_LINUX: true,
-      IS_LINUX_ARM: true
-    }))
-    ;(os.platform as jest.Mock).mockReturnValue('linux')
-    ;(os.arch as jest.Mock).mockReturnValue('arm64')
-
-    const mockedPlatform = require('../src/platform')
-
-    expect(os.platform()).toBe('linux')
-    expect(os.arch()).toBe('arm64')
-    expect(mockedPlatform.IS_LINUX).toBe(true)
-    expect(mockedPlatform.OS_ARCH).toBe('arm64')
-    expect(mockedPlatform.IS_LINUX_ARM).toBe(true)
-  })
-})
-
-describe('Platform detection', () => {
-  beforeEach(() => {
-    jest.resetModules()
-  })
-
   afterEach(() => {
     jest.resetAllMocks()
   })
 
-  test('should return windows for win32', () => {
-    // Mocking the platform and architecture for win32
-    jest.doMock('../src/platform', () => ({
-      __esModule: true,
-      IS_WINDOWS: true,
-      IS_WINDOWS_ARM: false, // IS_WINDOWS_ARM should be false for non-arm64 Windows
-      OS_PLATFORM: 'win32',
-      OS_ARCH: 'x64', // Not arm64
-      getPlatform: jest.fn().mockReturnValue('windows')
-    }))
-    ;(os.platform as jest.Mock).mockReturnValue('win32')
-    ;(os.arch as jest.Mock).mockReturnValue('x64')
-    const mockedPlatform = require('../src/platform')
+  test('should derive HOME_DIR and TEMP_DIR from os', () => {
+    const p = loadPlatform({ platform: 'linux', arch: 'x64', homedir: '/home/tester', tmpdir: '/var/tmp' })
 
-    expect(mockedPlatform.IS_WINDOWS_ARM).toBe(false) // IS_WINDOWS_ARM should be false for x64
-    expect(mockedPlatform.getPlatform()).toBe('windows') // Should return 'windows'
+    expect(p.HOME_DIR).toBe('/home/tester')
+    expect(p.TEMP_DIR).toBe('/var/tmp')
   })
 
-  test('should return warm for windows arm64', () => {
-    // Mocking the platform and architecture for arm64 on Windows
-    jest.doMock('../src/platform', () => ({
-      __esModule: true, // Ensure it is treated as an ES module
-      IS_WINDOWS: true,
-      IS_WINDOWS_ARM: true, // IS_WINDOWS_ARM should be true for arm64 Windows
-      OS_PLATFORM: 'win32',
-      OS_ARCH: 'arm64', // arm64 architecture
-      getPlatform: jest.fn().mockReturnValue('warm') // Explicitly mock getPlatform
-    }))
-    ;(os.platform as jest.Mock).mockReturnValue('win32')
-    ;(os.arch as jest.Mock).mockReturnValue('arm64')
-    const mockedPlatform = require('../src/platform') // Re-import after mocking
+  test('should expose the raw os platform and arch', () => {
+    const p = loadPlatform({ platform: 'freebsd', arch: 'riscv64' })
 
-    expect(mockedPlatform.IS_WINDOWS_ARM).toBe(true) // IS_WINDOWS_ARM should be true for arm64
-    expect(mockedPlatform.getPlatform()).toBe('warm') // Should return 'warm' for arm64 Windows
+    expect(p.OS_PLATFORM).toBe('freebsd')
+    expect(p.OS_ARCH).toBe('riscv64')
   })
 
-  test('should return linux for linux', () => {
-    // Mocking the platform and architecture for x64 on Linux
-    jest.doMock('../src/platform', () => ({
-      __esModule: true,
-      IS_LINUX: true,
-      IS_LINUX_ARM: false, // IS_LINUX_ARM should be false for non-arm64 Linux
-      OS_PLATFORM: 'linux',
-      OS_ARCH: 'x64', // Not arm64
-      getPlatform: jest.fn().mockReturnValue('linux')
-    }))
-    ;(os.platform as jest.Mock).mockReturnValue('linux')
-    ;(os.arch as jest.Mock).mockReturnValue('x64')
-    const mockedPlatform = require('../src/platform')
+  test('should set IS_WINDOWS and not IS_LINUX on win32', () => {
+    const p = loadPlatform({ platform: 'win32', arch: 'x64' })
 
-    expect(mockedPlatform.IS_LINUX_ARM).toBe(false) // IS_LINUX_ARM should be false for x64
-    expect(mockedPlatform.getPlatform()).toBe('linux') // Should return 'linux'
+    expect(p.IS_WINDOWS).toBe(true)
+    expect(p.IS_LINUX).toBe(false)
+    expect(p.IS_MAC).toBe(false)
   })
 
-  test('should return linux-arm for linux arm64', () => {
-    // Mocking the platform and architecture for arm64 on Linux
-    jest.doMock('../src/platform', () => ({
-      __esModule: true,
-      IS_LINUX: true,
-      IS_LINUX_ARM: true, // IS_LINUX_ARM should be true for arm64 Linux
-      OS_PLATFORM: 'linux',
-      OS_ARCH: 'arm64', // arm64 architecture
-      getPlatform: jest.fn().mockReturnValue('linux-arm')
-    }))
-    ;(os.platform as jest.Mock).mockReturnValue('linux')
-    ;(os.arch as jest.Mock).mockReturnValue('arm64')
-    const mockedPlatform = require('../src/platform')
+  test('should set IS_LINUX and not IS_MAC on linux', () => {
+    const p = loadPlatform({ platform: 'linux', arch: 'x64' })
 
-    expect(mockedPlatform.IS_LINUX_ARM).toBe(true) // IS_LINUX_ARM should be true for arm64
-    expect(mockedPlatform.getPlatform()).toBe('linux-arm') // Should return 'linux-arm' for arm64 Linux
+    expect(p.IS_LINUX).toBe(true)
+    expect(p.IS_MAC).toBe(false)
+    expect(p.IS_WINDOWS).toBe(false)
   })
 
-  test('should return mac for darwin', () => {
-    jest.doMock('../src/platform', () => ({
-      __esModule: true,
-      IS_MAC: true,
-      OS_PLATFORM: 'darwin',
-      OS_ARCH: 'x64',
-      getPlatform: jest.fn().mockReturnValue('mac')
-    }))
-    ;(os.platform as jest.Mock).mockReturnValue('darwin')
-    ;(os.arch as jest.Mock).mockReturnValue('x64')
-    const mockedPlatform = require('../src/platform')
+  test('should set IS_MAC on darwin', () => {
+    const p = loadPlatform({ platform: 'darwin', arch: 'x64' })
 
-    expect(mockedPlatform.getPlatform()).toBe('mac')
+    expect(p.IS_MAC).toBe(true)
   })
 
-  test('should return platform name for unknown platform', () => {
-    jest.doMock('../src/platform', () => ({
-      __esModule: true,
-      OS_PLATFORM: 'freebsd',
-      getPlatform: jest.fn().mockReturnValue('freebsd')
-    }))
-    ;(os.platform as jest.Mock).mockReturnValue('freebsd')
-    const mockedPlatform = require('../src/platform')
+  test('should set IS_WINDOWS_ARM only for arm64 windows', () => {
+    const p = loadPlatform({ platform: 'win32', arch: 'arm64' })
 
-    expect(mockedPlatform.OS_PLATFORM).toBe('freebsd')
-    expect(mockedPlatform.getPlatform()).toBe('freebsd')
+    expect(p.IS_WINDOWS_ARM).toBe(true)
+  })
+
+  test('should set IS_LINUX_ARM only for arm64 linux', () => {
+    const p = loadPlatform({ platform: 'linux', arch: 'arm64' })
+
+    expect(p.IS_LINUX_ARM).toBe(true)
+  })
+
+  test('should not set IS_WINDOWS_ARM for arm64 on a non-windows platform', () => {
+    const p = loadPlatform({ platform: 'darwin', arch: 'arm64' })
+
+    expect(p.IS_WINDOWS_ARM).toBe(false)
+  })
+})
+
+describe('getPlatform', () => {
+  afterEach(() => {
+    jest.resetAllMocks()
+  })
+
+  test('should return "windows" for win32', () => {
+    expect(loadPlatform({ platform: 'win32', arch: 'x64' }).getPlatform()).toBe('windows')
+  })
+
+  test('should return "warm" for arm64 windows', () => {
+    expect(loadPlatform({ platform: 'win32', arch: 'arm64' }).getPlatform()).toBe('warm')
+  })
+
+  test('should return "mac" for darwin', () => {
+    expect(loadPlatform({ platform: 'darwin', arch: 'x64' }).getPlatform()).toBe('mac')
+  })
+
+  test('should return "linux" for linux', () => {
+    expect(loadPlatform({ platform: 'linux', arch: 'x64' }).getPlatform()).toBe('linux')
+  })
+
+  test('should return "linux" for arm64 linux', () => {
+    expect(loadPlatform({ platform: 'linux', arch: 'arm64' }).getPlatform()).toBe('linux')
+  })
+
+  test('should fall back to the raw os platform name for an unknown platform', () => {
+    expect(loadPlatform({ platform: 'freebsd', arch: 'x64' }).getPlatform()).toBe('freebsd')
   })
 })
 
@@ -237,5 +138,12 @@ describe('Linux Distribution Version Detection', () => {
     ;(fs.existsSync as jest.Mock).mockReturnValue(true)
     ;(fs.readFileSync as jest.Mock).mockReturnValue(mockContent)
     expect(platform.getLinuxDistributionVersionId()).toBe('')
+  })
+
+  test('should read /etc/os-release as utf8', () => {
+    ;(fs.existsSync as jest.Mock).mockReturnValue(true)
+    ;(fs.readFileSync as jest.Mock).mockReturnValue('VERSION_ID="22.04"')
+    platform.getLinuxDistributionVersionId()
+    expect(fs.readFileSync).toHaveBeenCalledWith('/etc/os-release', 'utf8')
   })
 })

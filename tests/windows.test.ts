@@ -40,4 +40,15 @@ describe('windows registry helper', () => {
 
     expect(core.warning).toHaveBeenCalledWith(expect.stringContaining('Failed to register ICD:'))
   })
+
+  test('registerDriverInWindowsRegistry stringifies a non-Error throw', () => {
+    ;(child.execSync as jest.Mock).mockImplementation(() => {
+      throw 'plain string failure'
+    })
+
+    windows.registerDriverInWindowsRegistry('C:\\fake\\driver\\icd.json')
+
+    // The catch block falls back to String(error) when the thrown value is not an Error.
+    expect(core.warning).toHaveBeenCalledWith(expect.stringContaining('Failed to register ICD: plain string failure'))
+  })
 })

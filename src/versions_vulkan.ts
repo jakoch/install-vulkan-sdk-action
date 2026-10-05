@@ -79,9 +79,9 @@ export const getAvailableVersions = async (): Promise<AvailableVersions | null> 
  *
  * @see LatestVersionResponse
  *
- * @return {*}  {(Promise<LatestVersionResponse | null>)}
+ * @return {*}  {(Promise<LatestVersionResponse>)}
  */
-export const getLatestVersions = async (): Promise<LatestVersionResponse | null> => {
+export const getLatestVersions = async (): Promise<LatestVersionResponse> => {
   const url = `https://vulkan.lunarg.com/sdk/latest.json`
   const response = await http.client.getJson<LatestVersionResponse>(url)
   if (!response.result) {
@@ -124,24 +124,16 @@ export function getLatestVersionForPlatform(latestVersion: LatestVersionResponse
  *    a) a manually passed in version (pass-through)
  * or b) the automatically resolved latest version for the platform.
  *
- * The `getLatestVersions` dependency can be overridden for testing.
- *
  * @param {string} version
- * @param {*} [getLatestVersionsFn] Override for getLatestVersions, used by tests.
  * @return {*}  {Promise<string>}
  */
-export async function resolveVersion(
-  version: string,
-  getLatestVersionsFn: () => Promise<LatestVersionResponse | null> = getLatestVersions
-): Promise<string> {
+export async function resolveVersion(version: string): Promise<string> {
   let versionToDownload: string = version
   if (version === 'latest') {
     try {
-      const latestVersion: LatestVersionResponse | null = await getLatestVersionsFn()
-      if (latestVersion !== null) {
-        versionToDownload = getLatestVersionForPlatform(latestVersion)
-        core.info(`Latest Version: ${versionToDownload}`)
-      }
+      const latestVersion: LatestVersionResponse = await getLatestVersions()
+      versionToDownload = getLatestVersionForPlatform(latestVersion)
+      core.info(`Latest Version: ${versionToDownload}`)
     } catch (error) {
       let errorMessage = 'Failed to resolve_version()'
       if (error instanceof Error) {

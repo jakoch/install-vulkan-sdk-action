@@ -375,13 +375,125 @@ describe('inputs extra coverage', () => {
     expect(v).toBe('1.2.3.4')
   })
 
-  it('getInputSwiftshaderDestination normalizes provided path (placeholder)', () => {
-    // helper is private; behavior covered via getInputs tests
-    expect(true).toBe(true)
+  it('getInputs should return Windows default swiftshader and lavapipe destinations when empty', async () => {
+    jest.resetModules()
+    jest.clearAllMocks()
+
+    // Mock platform to windows
+    jest.doMock('../src/platform', () => ({ IS_WINDOWS: true, HOME_DIR: 'C:\\Users\\Test', IS_LINUX: false, IS_MAC: false }))
+    const coreMock = require('@actions/core')
+    coreMock.getInput = jest.fn().mockImplementation((name: string) => {
+      const map: Record<string, string> = {
+        vulkan_version: '1.4.328.1',
+        destination: '',
+        install_runtime: 'false',
+        cache: 'false',
+        optional_components: '',
+        stripdown: 'false',
+        install_swiftshader: 'false',
+        swiftshader_destination: '',
+        install_lavapipe: 'false',
+        lavapipe_destination: '',
+        github_token: ''
+      }
+      return map[name] || ''
+    })
+
+    const inputsModule = require('../src/inputs')
+    const result = await inputsModule.getInputs()
+
+    expect(result.swiftshaderDestination).toBe(path.normalize('C:\\Swiftshader\\'))
+    expect(result.lavapipeDestination).toBe(path.normalize('C:\\Lavapipe\\'))
   })
 
-  it('getInputLavapipeDestination returns default for mac (placeholder)', () => {
-    // helper is private; behavior covered via getInputs tests
-    expect(true).toBe(true)
+  it('getInputs should mask a github_token input as a secret', async () => {
+    jest.resetModules()
+    jest.clearAllMocks()
+
+    jest.doMock('../src/platform', () => ({ IS_LINUX: true, HOME_DIR: '/home/test', IS_WINDOWS: false, IS_MAC: false }))
+    const coreMock = require('@actions/core')
+    coreMock.getInput = jest.fn().mockImplementation((name: string) => {
+      const map: Record<string, string> = {
+        vulkan_version: '1.4.328.1',
+        destination: '',
+        install_runtime: 'false',
+        cache: 'false',
+        optional_components: '',
+        stripdown: 'false',
+        install_swiftshader: 'false',
+        swiftshader_destination: '',
+        install_lavapipe: 'false',
+        lavapipe_destination: '',
+        github_token: 'ghp_secret_value'
+      }
+      return map[name] || ''
+    })
+
+    const inputsModule = require('../src/inputs')
+    const result = await inputsModule.getInputs()
+
+    expect(result.githubToken).toBe('ghp_secret_value')
+    // The token must be registered as a secret so it is masked in logs.
+    expect(coreMock.setSecret).toHaveBeenCalledWith('ghp_secret_value')
+  })
+
+  it('getInputs should not mask an empty github_token as a secret', async () => {
+    jest.resetModules()
+    jest.clearAllMocks()
+
+    jest.doMock('../src/platform', () => ({ IS_LINUX: true, HOME_DIR: '/home/test', IS_WINDOWS: false, IS_MAC: false }))
+    const coreMock = require('@actions/core')
+    coreMock.getInput = jest.fn().mockImplementation((name: string) => {
+      const map: Record<string, string> = {
+        vulkan_version: '1.4.328.1',
+        destination: '',
+        install_runtime: 'false',
+        cache: 'false',
+        optional_components: '',
+        stripdown: 'false',
+        install_swiftshader: 'false',
+        swiftshader_destination: '',
+        install_lavapipe: 'false',
+        lavapipe_destination: '',
+        github_token: ''
+      }
+      return map[name] || ''
+    })
+
+    const inputsModule = require('../src/inputs')
+    await inputsModule.getInputs()
+
+    expect(coreMock.setSecret).not.toHaveBeenCalled()
+  })
+
+  it('getInputs should return macOS default swiftshader and lavapipe destinations when empty', async () => {
+    jest.resetModules()
+    jest.clearAllMocks()
+
+    // Mock platform to mac
+    jest.doMock('../src/platform', () => ({ IS_MAC: true, HOME_DIR: '/Users/test', IS_LINUX: false, IS_WINDOWS: false }))
+    const coreMock = require('@actions/core')
+    coreMock.getInput = jest.fn().mockImplementation((name: string) => {
+      const map: Record<string, string> = {
+        vulkan_version: '1.4.328.1',
+        destination: '',
+        install_runtime: 'false',
+        cache: 'false',
+        optional_components: '',
+        stripdown: 'false',
+        install_swiftshader: 'false',
+        swiftshader_destination: '',
+        install_lavapipe: 'false',
+        lavapipe_destination: '',
+        github_token: ''
+      }
+      return map[name] || ''
+    })
+
+    const inputsModule = require('../src/inputs')
+    const result = await inputsModule.getInputs()
+
+    expect(result.swiftshaderDestination).toBe(path.normalize('/Users/test/swiftshader'))
+    expect(result.lavapipeDestination).toBe(path.normalize('/Users/test/lavapipe'))
   })
 })

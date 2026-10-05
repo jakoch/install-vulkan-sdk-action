@@ -30,6 +30,8 @@ import * as installer_swiftshader from '../src/installer_swiftshader'
 import * as platform from '../src/platform'
 import * as core from '@actions/core'
 import * as cache from '@actions/cache'
+import * as github from '../src/github'
+import * as path from 'node:path'
 
 describe('inputs', () => {
   /*test('GetInputs', async () => {
@@ -235,6 +237,81 @@ describe('run', () => {
     expect(mockInfo).toHaveBeenCalledWith('✅ Done.')
   })
 
+  test('should warn when the runtime-only installation cannot be verified', async () => {
+    const mockInputs = {
+      version: '1.3.250.1',
+      destination: '/fake/dest',
+      optionalComponents: [],
+      useCache: false,
+      cacheSaveIf: true,
+      stripdown: false,
+      installRuntime: false,
+      installRuntimeOnly: true,
+      installSwiftshader: false,
+      installLavapipe: false,
+      swiftshaderDestination: '',
+      lavapipeDestination: '',
+      githubToken: ''
+    }
+    ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
+    ;(versionsVulkan.resolveVersion as jest.MockedFunction<typeof versionsVulkan.resolveVersion>).mockResolvedValue('1.3.250.1')
+    ;(downloader.downloadVulkanRuntime as jest.MockedFunction<typeof downloader.downloadVulkanRuntime>).mockResolvedValue(
+      '/fake/runtime/download/path'
+    )
+    ;(installer_vulkan.installVulkanRuntime as jest.MockedFunction<typeof installer_vulkan.installVulkanRuntime>).mockResolvedValue(
+      '/fake/runtime/install/path'
+    )
+    // Verification fails, so the action must warn rather than report the path.
+    ;(
+      installer_vulkan.verifyInstallationOfRuntime as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfRuntime>
+    ).mockReturnValue(false)
+
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
+    Object.defineProperty(platform, 'IS_WINDOWS_ARM', { value: false, writable: true })
+
+    const mockWarning = jest.fn()
+    ;(core.warning as jest.MockedFunction<typeof core.warning>).mockImplementation(mockWarning)
+
+    await main.run()
+
+    expect(mockWarning).toHaveBeenCalledWith(expect.stringContaining('Could not find Vulkan Runtime'))
+    expect(core.info).not.toHaveBeenCalledWith(expect.stringContaining('Path to Vulkan Runtime'))
+  })
+
+  test('should store a github_token input in the token store', async () => {
+    const mockInputs = {
+      version: '1.3.250.1',
+      destination: '/fake/dest',
+      optionalComponents: [],
+      useCache: false,
+      cacheSaveIf: true,
+      stripdown: false,
+      installRuntime: false,
+      installRuntimeOnly: false,
+      installSwiftshader: false,
+      installLavapipe: false,
+      swiftshaderDestination: '',
+      lavapipeDestination: '',
+      githubToken: 'ghp_from_workflow'
+    }
+    ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
+    ;(versionsVulkan.resolveVersion as jest.MockedFunction<typeof versionsVulkan.resolveVersion>).mockResolvedValue('1.3.250.1')
+    ;(downloader.downloadVulkanSdk as jest.MockedFunction<typeof downloader.downloadVulkanSdk>).mockResolvedValue('/fake/download/path')
+
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: false, writable: true })
+    Object.defineProperty(platform, 'IS_LINUX', { value: true, writable: true })
+
+    const mockInfo = jest.fn()
+    ;(core.info as jest.MockedFunction<typeof core.info>).mockImplementation(mockInfo)
+
+    await main.run()
+
+    // A github_token input should reach the shared token store so GitHub API
+    // calls become authenticated.
+    expect(github.githubTokenStore.getToken()).toBe('ghp_from_workflow')
+    expect(mockInfo).toHaveBeenCalledWith('Using github_token to authenticate GitHub API requests.')
+  })
+
   test('should install SwiftShader on Windows', async () => {
     // Mock inputs
     const mockInputs = {
@@ -291,6 +368,280 @@ describe('run', () => {
     // Verify SwiftShader installation
     expect(installer_swiftshader.installSwiftShader).toHaveBeenCalledWith('/fake/swiftshader', false)
     expect(mockInfo).toHaveBeenCalledWith('ℹ️ [INFO] Path to SwiftShader: /fake/swiftshader/path')
+  })
+
+  test('should warn when the SwiftShader installation cannot be verified', async () => {
+    const mockInputs = {
+      version: '1.3.250.1',
+      destination: '/fake/dest',
+      optionalComponents: [],
+      useCache: false,
+      cacheSaveIf: true,
+      stripdown: false,
+      installRuntime: false,
+      installRuntimeOnly: false,
+      installSwiftshader: true,
+      installLavapipe: false,
+      swiftshaderDestination: '/fake/swiftshader',
+      lavapipeDestination: '',
+      githubToken: ''
+    }
+    ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
+    ;(versionsVulkan.resolveVersion as jest.MockedFunction<typeof versionsVulkan.resolveVersion>).mockResolvedValue('1.3.250.1')
+    ;(downloader.downloadVulkanSdk as jest.MockedFunction<typeof downloader.downloadVulkanSdk>).mockResolvedValue('/fake/download/path')
+    ;(installer_vulkan.installVulkanSdk as jest.MockedFunction<typeof installer_vulkan.installVulkanSdk>).mockResolvedValue('/fake/install/path')
+    ;(installer_vulkan.getVulkanSdkPath as jest.MockedFunction<typeof installer_vulkan.getVulkanSdkPath>).mockReturnValue('/fake/sdk/path')
+    ;(installer_vulkan.verifyInstallationOfSdk as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfSdk>).mockReturnValue(true)
+    ;(
+      installer_swiftshader.installSwiftShader as jest.MockedFunction<typeof installer_swiftshader.installSwiftShader>
+    ).mockResolvedValue('/fake/swiftshader/path')
+    // Verification fails, so setupSwiftshader must not run and a warning is emitted.
+    ;(installer_swiftshader.verifyInstallation as unknown as jest.Mock).mockReturnValue(false)
+
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
+    Object.defineProperty(platform, 'IS_WINDOWS_ARM', { value: false, writable: true })
+
+    const mockWarning = jest.fn()
+    ;(core.warning as jest.MockedFunction<typeof core.warning>).mockImplementation(mockWarning)
+
+    await main.run()
+
+    expect(mockWarning).toHaveBeenCalledWith(expect.stringContaining('Could not find SwiftShader'))
+    expect(installer_swiftshader.setupSwiftshader).not.toHaveBeenCalled()
+  })
+
+  test('should warn when the Lavapipe installation cannot be verified', async () => {
+    const mockInputs = {
+      version: '1.3.250.1',
+      destination: '/fake/dest',
+      optionalComponents: [],
+      useCache: false,
+      cacheSaveIf: true,
+      stripdown: false,
+      installRuntime: false,
+      installRuntimeOnly: false,
+      installSwiftshader: false,
+      installLavapipe: true,
+      swiftshaderDestination: '',
+      lavapipeDestination: '/fake/lavapipe',
+      githubToken: ''
+    }
+    ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
+    ;(versionsVulkan.resolveVersion as jest.MockedFunction<typeof versionsVulkan.resolveVersion>).mockResolvedValue('1.3.250.1')
+    ;(downloader.downloadVulkanSdk as jest.MockedFunction<typeof downloader.downloadVulkanSdk>).mockResolvedValue('/fake/download/path')
+    ;(installer_vulkan.installVulkanSdk as jest.MockedFunction<typeof installer_vulkan.installVulkanSdk>).mockResolvedValue('/fake/install/path')
+    ;(installer_vulkan.getVulkanSdkPath as jest.MockedFunction<typeof installer_vulkan.getVulkanSdkPath>).mockReturnValue('/fake/sdk/path')
+    ;(installer_vulkan.verifyInstallationOfSdk as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfSdk>).mockReturnValue(true)
+    ;(
+      installer_lavapipe.installLavapipe as jest.MockedFunction<typeof installer_lavapipe.installLavapipe>
+    ).mockResolvedValue('/fake/lavapipe/path')
+    // Verification fails, so setupLavapipe must not run and a warning is emitted.
+    jest.mocked(installer_lavapipe.verifyInstallation).mockReturnValue(false)
+
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
+
+    const mockWarning = jest.fn()
+    ;(core.warning as jest.MockedFunction<typeof core.warning>).mockImplementation(mockWarning)
+
+    await main.run()
+
+    expect(mockWarning).toHaveBeenCalledWith(expect.stringContaining('Could not find Lavapipe'))
+    expect(installer_lavapipe.setupLavapipe).not.toHaveBeenCalled()
+  })
+
+  test('should warn when the Vulkan Runtime bundled in the SDK cannot be verified', async () => {
+    const mockInputs = {
+      version: '1.3.250.1',
+      destination: '/fake/dest',
+      optionalComponents: [],
+      useCache: false,
+      cacheSaveIf: true,
+      stripdown: false,
+      // installRuntime with a full SDK install reaches the post-install runtime check.
+      installRuntime: true,
+      installRuntimeOnly: false,
+      installSwiftshader: false,
+      installLavapipe: false,
+      swiftshaderDestination: '',
+      lavapipeDestination: '',
+      githubToken: ''
+    }
+    ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
+    ;(versionsVulkan.resolveVersion as jest.MockedFunction<typeof versionsVulkan.resolveVersion>).mockResolvedValue('1.3.250.1')
+    ;(downloader.downloadVulkanSdk as jest.MockedFunction<typeof downloader.downloadVulkanSdk>).mockResolvedValue('/fake/download/path')
+    ;(installer_vulkan.installVulkanSdk as jest.MockedFunction<typeof installer_vulkan.installVulkanSdk>).mockResolvedValue('/fake/install/path')
+    ;(installer_vulkan.getVulkanSdkPath as jest.MockedFunction<typeof installer_vulkan.getVulkanSdkPath>).mockReturnValue('/fake/sdk/path')
+    ;(installer_vulkan.verifyInstallationOfSdk as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfSdk>).mockReturnValue(true)
+    // 1.3.250.1 is below 1.4.313.1, so the runtime is downloaded standalone.
+    ;(
+      installer_vulkan.installVulkanRuntime as jest.MockedFunction<typeof installer_vulkan.installVulkanRuntime>
+    ).mockResolvedValue('/fake/runtime/install/path')
+    ;(
+      installer_vulkan.verifyInstallationOfRuntime as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfRuntime>
+    ).mockReturnValue(false)
+
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
+    Object.defineProperty(platform, 'IS_WINDOWS_ARM', { value: false, writable: true })
+
+    const mockWarning = jest.fn()
+    ;(core.warning as jest.MockedFunction<typeof core.warning>).mockImplementation(mockWarning)
+
+    await main.run()
+
+    expect(mockWarning).toHaveBeenCalledWith(expect.stringContaining('Could not find Vulkan Runtime'))
+  })
+
+  test('should install the Vulkan Runtime from the SDK for versions >= 1.4.313.1', async () => {
+    const mockInputs = {
+      version: 'latest',
+      destination: '/fake/dest',
+      optionalComponents: [],
+      useCache: false,
+      cacheSaveIf: true,
+      stripdown: false,
+      installRuntime: true,
+      installRuntimeOnly: false,
+      installSwiftshader: false,
+      installLavapipe: false,
+      swiftshaderDestination: '',
+      lavapipeDestination: '',
+      githubToken: ''
+    }
+    ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
+    ;(versionsVulkan.resolveVersion as jest.MockedFunction<typeof versionsVulkan.resolveVersion>).mockResolvedValue('1.4.313.1')
+    ;(downloader.downloadVulkanSdk as jest.MockedFunction<typeof downloader.downloadVulkanSdk>).mockResolvedValue('/fake/download/path')
+    ;(installer_vulkan.installVulkanSdk as jest.MockedFunction<typeof installer_vulkan.installVulkanSdk>).mockResolvedValue('/fake/install/path')
+    ;(installer_vulkan.getVulkanSdkPath as jest.MockedFunction<typeof installer_vulkan.getVulkanSdkPath>).mockReturnValue('/fake/sdk/path')
+    ;(installer_vulkan.verifyInstallationOfSdk as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfSdk>).mockReturnValue(true)
+    ;(
+      installer_vulkan.verifyInstallationOfRuntime as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfRuntime>
+    ).mockReturnValue(true)
+
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
+    Object.defineProperty(platform, 'IS_WINDOWS_ARM', { value: false, writable: true })
+
+    await main.run()
+
+    // From 1.4.313.1 the runtime ships inside the SDK installer, so it is
+    // repositioned from there instead of downloaded standalone.
+    expect(installer_vulkan.installVulkanRuntimeFromSdk).toHaveBeenCalledWith('/fake/install/path')
+    expect(installer_vulkan.installVulkanRuntime).not.toHaveBeenCalled()
+  })
+
+  test('should warn and continue when saving the cache fails', async () => {
+    const mockInputs = {
+      version: '1.3.250.1',
+      destination: '/fake/dest',
+      optionalComponents: [],
+      useCache: true,
+      cacheSaveIf: true,
+      stripdown: false,
+      installRuntime: false,
+      installRuntimeOnly: false,
+      installSwiftshader: false,
+      installLavapipe: false,
+      swiftshaderDestination: '',
+      lavapipeDestination: '',
+      githubToken: ''
+    }
+    ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
+    ;(versionsVulkan.resolveVersion as jest.MockedFunction<typeof versionsVulkan.resolveVersion>).mockResolvedValue('1.3.250.1')
+    ;(downloader.downloadVulkanSdk as jest.MockedFunction<typeof downloader.downloadVulkanSdk>).mockResolvedValue('/fake/download/path')
+    ;(installer_vulkan.installVulkanSdk as jest.MockedFunction<typeof installer_vulkan.installVulkanSdk>).mockResolvedValue('/fake/install/path')
+    ;(installer_vulkan.getVulkanSdkPath as jest.MockedFunction<typeof installer_vulkan.getVulkanSdkPath>).mockReturnValue('/fake/sdk/path')
+    ;(installer_vulkan.verifyInstallationOfSdk as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfSdk>).mockReturnValue(true)
+    // On non-Windows the cache restore branch is skipped, but the save is attempted.
+    jest.mocked(cache.restoreCache).mockResolvedValue(undefined)
+    jest.mocked(cache.saveCache).mockRejectedValue(new Error('cache quota exceeded'))
+
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: false, writable: true })
+    Object.defineProperty(platform, 'IS_LINUX', { value: true, writable: true })
+
+    const mockWarning = jest.fn()
+    ;(core.warning as jest.MockedFunction<typeof core.warning>).mockImplementation(mockWarning)
+
+    await main.run()
+
+    // A cache save failure must warn, not fail the whole install.
+    expect(mockWarning).toHaveBeenCalledWith(expect.stringContaining('cache quota exceeded'))
+    expect(core.setFailed).not.toHaveBeenCalled()
+  })
+
+  test('should restore from cache on Windows and exit early on a hit', async () => {
+    const mockInputs = {
+      version: '1.3.250.1',
+      destination: '/fake/dest',
+      optionalComponents: [],
+      useCache: true,
+      cacheSaveIf: true,
+      stripdown: false,
+      installRuntime: false,
+      installRuntimeOnly: false,
+      installSwiftshader: false,
+      installLavapipe: false,
+      swiftshaderDestination: '',
+      lavapipeDestination: '',
+      githubToken: ''
+    }
+    ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
+    ;(versionsVulkan.resolveVersion as jest.MockedFunction<typeof versionsVulkan.resolveVersion>).mockResolvedValue('1.3.250.1')
+
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
+    Object.defineProperty(platform, 'IS_WINDOWS_ARM', { value: false, writable: true })
+
+    // Windows keys the cache on a versionized destination path.
+    jest.mocked(cache.restoreCache).mockResolvedValue('restore-id-123')
+    jest.mocked(cache.saveCache).mockResolvedValue(1)
+    const mockInfo = jest.fn()
+    ;(core.info as jest.MockedFunction<typeof core.info>).mockImplementation(mockInfo)
+
+    await main.run()
+
+    expect(cache.restoreCache).toHaveBeenCalledWith(
+      [path.normalize('/fake/dest/1.3.250.1')],
+      expect.any(String),
+      expect.any(Array)
+    )
+    expect(mockInfo).toHaveBeenCalledWith(expect.stringContaining('Restored Vulkan SDK'))
+    // A cache hit returns early, so nothing is downloaded.
+    expect(downloader.downloadVulkanSdk).not.toHaveBeenCalled()
+  })
+
+  test('should continue installing when the cache misses on Windows', async () => {
+    const mockInputs = {
+      version: '1.3.250.1',
+      destination: '/fake/dest',
+      optionalComponents: [],
+      useCache: true,
+      cacheSaveIf: true,
+      stripdown: false,
+      installRuntime: false,
+      installRuntimeOnly: false,
+      installSwiftshader: false,
+      installLavapipe: false,
+      swiftshaderDestination: '',
+      lavapipeDestination: '',
+      githubToken: ''
+    }
+    ;(inputs.getInputs as jest.MockedFunction<typeof inputs.getInputs>).mockResolvedValue(mockInputs)
+    ;(versionsVulkan.resolveVersion as jest.MockedFunction<typeof versionsVulkan.resolveVersion>).mockResolvedValue('1.3.250.1')
+    ;(downloader.downloadVulkanSdk as jest.MockedFunction<typeof downloader.downloadVulkanSdk>).mockResolvedValue('/fake/download/path')
+    ;(installer_vulkan.installVulkanSdk as jest.MockedFunction<typeof installer_vulkan.installVulkanSdk>).mockResolvedValue('/fake/install/path')
+    ;(installer_vulkan.getVulkanSdkPath as jest.MockedFunction<typeof installer_vulkan.getVulkanSdkPath>).mockReturnValue('/fake/sdk/path')
+    ;(installer_vulkan.verifyInstallationOfSdk as jest.MockedFunction<typeof installer_vulkan.verifyInstallationOfSdk>).mockReturnValue(true)
+
+    Object.defineProperty(platform, 'IS_WINDOWS', { value: true, writable: true })
+    Object.defineProperty(platform, 'IS_WINDOWS_ARM', { value: false, writable: true })
+
+    jest.mocked(cache.restoreCache).mockResolvedValue(undefined)
+    jest.mocked(cache.saveCache).mockResolvedValue(1)
+    const mockInfo = jest.fn()
+    ;(core.info as jest.MockedFunction<typeof core.info>).mockImplementation(mockInfo)
+
+    await main.run()
+
+    expect(mockInfo).toHaveBeenCalledWith(expect.stringContaining("Cache for 'Vulkan SDK' not found"))
+    expect(downloader.downloadVulkanSdk).toHaveBeenCalled()
   })
 
   test('should handle errors gracefully', async () => {

@@ -26,7 +26,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   export, which did not affect the reference already captured by `src/downloader.ts`
 - `tests/versions_vulkan.test.ts`: the "null latest version" test spied on a module
   internal that `getLatestVersions()` can never return, so it asserted an unreachable
-  branch. It now injects a stub and covers a real code path.
+  branch
+- `getLatestVersions()` cannot return `null`, so the `latestVersion !== null` branch in
+  `resolveVersion()` was dead code and has been removed
+
+### Testing
+- Statement coverage raised from 92.06% to 97.31% (216 tests, up from 191)
+- `tests/platform.test.ts`: 6 tests asserted against a `jest.fn()` that the test itself
+  configured, so the real `getPlatform()` never ran and the suite passed even for
+  functions that do not exist in `src/platform.ts`. Rewritten to mock `node:os` and
+  exercise the real module
+- Removed 2 placeholder tests in `tests/input.test.ts` that asserted `true === true`
+- Added coverage for the GitHub token store, the `verify.ts` and `windows.ts` catch
+  blocks, SwiftShader/Lavapipe verification failures, the Windows cache-restore path and
+  the standalone Vulkan Runtime install
 
 ## [1.6.0] - 2026-06-26
 
