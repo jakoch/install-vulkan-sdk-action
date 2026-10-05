@@ -1,6 +1,6 @@
 {
   "name": "install-vulkan-sdk-action",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": true,
   "description": "A Github Action installing the Vulkan SDK and Runtime.",
   "author": "Jens A. Koch",
@@ -47,14 +47,16 @@
     "@actions/tool-cache": "^4"
   },
   "devDependencies": {
+    "@babel/core": "^7",
+    "@babel/preset-env": "^7",
+    "@babel/preset-typescript": "^7",
     "@biomejs/biome": "^2",
     "@types/jest": "^30",
     "@types/node": "^26.6",
     "esbuild": "^0.28.0",
     "husky": "^9.1.7",
     "jest": "^30",
-    "ts-jest": "^29",
-    "typescript": "^6.0"
+    "typescript": "^7.0"
   },
   "repository": {
     "type": "git",

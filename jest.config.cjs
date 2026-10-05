@@ -4,7 +4,7 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/tests/*.test.ts'],
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\\.ts$': 'babel-jest'
   },
   moduleNameMapper: {
     '^@actions/cache$': '<rootDir>/tests/__mocks__/cache.ts',

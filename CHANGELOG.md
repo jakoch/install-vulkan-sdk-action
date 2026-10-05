@@ -11,6 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.7.0] - 2026-10-05
+
+### Changed
+- `typescript` → 7 (closes #593)
+- Jest now transpiles TypeScript with `babel-jest` instead of `ts-jest`. `ts-jest`
+  caps its `typescript` peer range at `<7`, and its runtime use of the TS compiler API
+  does not work with the native TS 7 compiler. `babel-jest` has no `typescript` peer
+  dependency, so the test runner is decoupled from the compiler version.
+- `resolveVersion()` takes an optional `getLatestVersions` override for testing
+
+### Fixed
+- `tests/downloader.test.ts`: `fetchExpectedSha` tests replaced the `http.download`
+  export, which did not affect the reference already captured by `src/downloader.ts`
+- `tests/versions_vulkan.test.ts`: the "null latest version" test spied on a module
+  internal that `getLatestVersions()` can never return, so it asserted an unreachable
+  branch. It now injects a stub and covers a real code path.
+
 ## [1.6.0] - 2026-06-26
 
 ### Changed
@@ -282,7 +299,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Section for Reference Links -->
 
-[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.6.0...HEAD
+[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.5...v1.6.0
 [1.5.5]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.4...v1.5.5
 [1.5.4]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.3...v1.5.4

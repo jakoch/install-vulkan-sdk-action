@@ -312,9 +312,11 @@ describe('downloader', () => {
   describe('fetchExpectedSha', () => {
     it('fetchExpectedSha fetches SHA from Lunarg API', async () => {
       jest.spyOn(platform, 'getPlatform').mockReturnValue('linux')
-      // Mock httpDownload
-      const httpDownloadMock = jest.fn().mockResolvedValue(JSON.stringify({ sha: 'expected-sha' }))
-      require('../src/http').download = httpDownloadMock
+      // Configure the existing mock rather than replacing the function:
+      // src/downloader.ts captures its own namespace object at import time, so
+      // reassigning the export here would not be visible to it.
+      const httpDownloadMock = http.download as jest.Mock
+      httpDownloadMock.mockResolvedValue(JSON.stringify({ sha: 'expected-sha' }))
 
       // Temporarily remove JEST_WORKER_ID to test the real logic
       const originalJestWorkerId = process.env.JEST_WORKER_ID
@@ -335,8 +337,8 @@ describe('downloader', () => {
     it('fetchExpectedSha handles invalid response', async () => {
       jest.spyOn(platform, 'getPlatform').mockReturnValue('linux')
       // Mock httpDownload to return invalid JSON
-      const httpDownloadMock = jest.fn().mockResolvedValue(JSON.stringify({ invalid: 'response' }))
-      require('../src/http').download = httpDownloadMock
+      const httpDownloadMock = http.download as jest.Mock
+      httpDownloadMock.mockResolvedValue(JSON.stringify({ invalid: 'response' }))
 
       // Temporarily remove JEST_WORKER_ID
       const originalJestWorkerId = process.env.JEST_WORKER_ID
@@ -354,8 +356,8 @@ describe('downloader', () => {
     it('fetchExpectedSha handles network error', async () => {
       jest.spyOn(platform, 'getPlatform').mockReturnValue('linux')
       // Mock httpDownload to reject
-      const httpDownloadMock = jest.fn().mockRejectedValue(new Error('Network error'))
-      require('../src/http').download = httpDownloadMock
+      const httpDownloadMock = http.download as jest.Mock
+      httpDownloadMock.mockRejectedValue(new Error('Network error'))
 
       // Temporarily remove JEST_WORKER_ID
       const originalJestWorkerId = process.env.JEST_WORKER_ID

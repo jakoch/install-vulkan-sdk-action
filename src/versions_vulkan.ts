@@ -124,14 +124,20 @@ export function getLatestVersionForPlatform(latestVersion: LatestVersionResponse
  *    a) a manually passed in version (pass-through)
  * or b) the automatically resolved latest version for the platform.
  *
+ * The `getLatestVersions` dependency can be overridden for testing.
+ *
  * @param {string} version
+ * @param {*} [getLatestVersionsFn] Override for getLatestVersions, used by tests.
  * @return {*}  {Promise<string>}
  */
-export async function resolveVersion(version: string): Promise<string> {
+export async function resolveVersion(
+  version: string,
+  getLatestVersionsFn: () => Promise<LatestVersionResponse | null> = getLatestVersions
+): Promise<string> {
   let versionToDownload: string = version
   if (version === 'latest') {
     try {
-      const latestVersion: LatestVersionResponse | null = await getLatestVersions()
+      const latestVersion: LatestVersionResponse | null = await getLatestVersionsFn()
       if (latestVersion !== null) {
         versionToDownload = getLatestVersionForPlatform(latestVersion)
         core.info(`Latest Version: ${versionToDownload}`)
