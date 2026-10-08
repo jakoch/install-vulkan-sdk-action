@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   does not work with the native TS 7 compiler. `babel-jest` has no `typescript` peer
   dependency, so the test runner is decoupled from the compiler version.
 - `resolveVersion()` takes an optional `getLatestVersions` override for testing
+- `biome.json` migrated to schema 2.5.15
 
 ### Fixed
 - `tests/downloader.test.ts`: `fetchExpectedSha` tests replaced the `http.download`
