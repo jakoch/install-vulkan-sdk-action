@@ -8,7 +8,7 @@ import * as path from 'path'
 
 jest.mock('@actions/core')
 
-// We'll load the module dynamically to control the JEST_WORKER_ID behavior.
+// We'll load the module dynamically so each test gets a fresh instance.
 const tmpDir = path.join(__dirname, 'tmp_verify')
 
 beforeAll(() => {
@@ -33,8 +33,6 @@ describe('verify helpers', () => {
 
   beforeEach(() => {
     jest.resetModules()
-    // ensure JEST_WORKER_ID present for normal test runs; we'll remove it when needed
-    process.env.JEST_WORKER_ID = process.env.JEST_WORKER_ID || '1'
   })
 
   it('computeFileSha256 returns correct sha for known content', async () => {
@@ -47,9 +45,7 @@ describe('verify helpers', () => {
     expect(sha).toBe('b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9')
   })
 
-  it('compareFileSha returns true for matching sha when not running under Jest', async () => {
-    // Remove the Jest env var and reload the module to exercise real behavior
-    delete process.env.JEST_WORKER_ID
+  it('compareFileSha returns true for matching sha', async () => {
     jest.resetModules()
     const verify = require('../src/verify')
 
@@ -60,7 +56,6 @@ describe('verify helpers', () => {
   })
 
   it('compareFileSha returns false and calls core.setFailed on mismatch when failOnMismatch=true', async () => {
-    delete process.env.JEST_WORKER_ID
     jest.resetModules()
     const core = require('@actions/core')
     const spy = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
@@ -75,7 +70,6 @@ describe('verify helpers', () => {
   })
 
   it('compareFileSha returns false and calls setFailed when file missing', async () => {
-    delete process.env.JEST_WORKER_ID
     jest.resetModules()
     const core = require('@actions/core')
     const spy = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
@@ -89,7 +83,6 @@ describe('verify helpers', () => {
   })
 
   it('compareFileSha does not call setFailed when failOnMismatch=false', async () => {
-    delete process.env.JEST_WORKER_ID
     jest.resetModules()
     const core = require('@actions/core')
     const spy = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
@@ -109,23 +102,30 @@ describe('verify helpers', () => {
     await expect(verify.computeFileSha256(missing)).rejects.toBeDefined()
   })
 
-  it('Jest bypass returns true and logs info', async () => {
-    // Ensure env var present
-    process.env.JEST_WORKER_ID = '1'
+  it('compareFileSha does not bypass verification under Jest', async () => {
+    // The production code must not branch on the test runner. Assert that a
+    // genuine mismatch is still detected while JEST_WORKER_ID is set.
+    process.env.JEST_WORKER_ID = process.env.JEST_WORKER_ID || '1'
     jest.resetModules()
     const core = require('@actions/core')
-    const infoSpy = jest.spyOn(core, 'info').mockImplementation(() => undefined)
+    const errorSpy = jest.spyOn(core, 'error').mockImplementation(() => undefined)
+    const setFailedSpy = jest.spyOn(core, 'setFailed').mockImplementation(() => undefined)
+
     const verify = require('../src/verify')
-    fs.writeFileSync(filePath, 'x')
-    const result = await verify.compareFileSha(filePath, 'any', true)
-    expect(result).toBe(true)
-    expect(infoSpy).toHaveBeenCalled()
-    infoSpy.mockRestore()
+    fs.writeFileSync(filePath, 'some content')
+    const actual = await verify.computeFileSha256(filePath)
+    const wrong = actual === 'a'.repeat(64) ? 'b'.repeat(64) : 'a'.repeat(64)
+
+    const result = await verify.compareFileSha(filePath, wrong, true)
+    expect(result).toBe(false)
+    expect(errorSpy).toHaveBeenCalled()
+    expect(setFailedSpy).toHaveBeenCalled()
+
+    errorSpy.mockRestore()
+    setFailedSpy.mockRestore()
   })
 
   it('compareFileSha catch block handles compute error and calls setFailed', async () => {
-    // Remove Jest env var to exercise real code path
-    delete process.env.JEST_WORKER_ID
     jest.resetModules()
 
     // Mock computeFileSha256 to throw when called
@@ -162,9 +162,6 @@ describe('verify helpers', () => {
     let errorSpy!: jest.SpyInstance
     let setFailedSpy!: jest.SpyInstance
     let promise!: Promise<boolean>
-
-    // The Jest bypass is checked synchronously on entry, so clear this first.
-    delete process.env.JEST_WORKER_ID
 
     jest.isolateModules(() => {
       jest.doMock('node:fs', () => ({

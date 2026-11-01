@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+### Fixed
+- Removed unit-test environment (JEST_WORKER_ID) bypasses in downloader and SHA verification modules (src/downloader.ts, src/verify.ts) = tests now use the same logic as real runs
+
 ## [1.7.0] - 2026-10-05
 
 ### Changed

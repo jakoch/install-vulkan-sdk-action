@@ -25,12 +25,6 @@ export function computeFileSha256(localPath: string): Promise<string> {
  * If failOnMismatch is true the function will call core.setFailed() on mismatch.
  */
 export async function compareFileSha(localPath: string, expectedSha: string, failOnMismatch = true): Promise<boolean> {
-  // Allow skipping verification during unit tests to avoid network/file IO.
-  const runningUnderJest = typeof process.env.JEST_WORKER_ID !== 'undefined'
-  if (runningUnderJest) {
-    core.info('Skipping SHA verification while running under Jest')
-    return true
-  }
   try {
     if (!fs.existsSync(localPath)) {
       const msg = `File to verify not found: ${localPath}`

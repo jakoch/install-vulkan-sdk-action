@@ -51,7 +51,7 @@ describe('downloader', () => {
 
       jest.spyOn(require('../src/downloader'), 'getUrlVulkanSdk').mockResolvedValue(url)
       ;(tc.downloadTool as jest.Mock).mockResolvedValueOnce(expectedPath)
-      jest.spyOn(require('../src/downloader'), 'fetchExpectedSha').mockResolvedValue('expected-sha')
+      ;(http.download as jest.Mock).mockResolvedValue(JSON.stringify({ sha: 'expected-sha' }))
       jest.spyOn(require('../src/verify'), 'compareFileSha').mockResolvedValue(true)
 
       const sdkPath = await downloadVulkanSdk(version)
@@ -67,15 +67,14 @@ describe('downloader', () => {
 
       jest.spyOn(require('../src/downloader'), 'getUrlVulkanSdk').mockResolvedValue(url)
       ;(tc.downloadTool as jest.Mock).mockResolvedValueOnce('/tmp/vulkansdk-arm.tar.xz')
-      const fetchExpectedShaSpy = jest.spyOn(require('../src/downloader'), 'fetchExpectedSha').mockResolvedValue('sha')
       const compareFileShaSpy = jest.spyOn(require('../src/verify'), 'compareFileSha').mockResolvedValue(true)
 
       const sdkPath = await downloadVulkanSdk(version)
 
       expect(sdkPath).toBe('/tmp/vulkansdk-arm.tar.xz')
-      // The ARM build is not published on the LunarG SHA API, so neither
-      // fetchExpectedSha nor compareFileSha may run for it.
-      expect(fetchExpectedShaSpy).not.toHaveBeenCalled()
+      // The ARM build is not published on the LunarG SHA API, so the SHA API must
+      // not be queried for it and compareFileSha must not run.
+      expect(http.download).not.toHaveBeenCalled()
       expect(compareFileShaSpy).not.toHaveBeenCalled()
       expect(core.info).toHaveBeenCalledWith(expect.stringContaining('Skipping SHA verification'))
     })
@@ -340,20 +339,9 @@ describe('downloader', () => {
       const httpDownloadMock = http.download as jest.Mock
       httpDownloadMock.mockResolvedValue(JSON.stringify({ sha: 'expected-sha' }))
 
-      // Temporarily remove JEST_WORKER_ID to test the real logic
-      const originalJestWorkerId = process.env.JEST_WORKER_ID
-      delete process.env.JEST_WORKER_ID
-
-      try {
-        const result = await fetchExpectedSha('1.4.304.0', 'vulkansdk-linux-x86_64-1.4.304.0.tar.xz')
-        expect(result).toBe('expected-sha')
-        expect(httpDownloadMock).toHaveBeenCalledWith('https://sdk.lunarg.com/sdk/sha/1.4.304.0/linux/vulkansdk-linux-x86_64-1.4.304.0.tar.xz.json')
-      } finally {
-        // Restore JEST_WORKER_ID
-        if (originalJestWorkerId) {
-          process.env.JEST_WORKER_ID = originalJestWorkerId
-        }
-      }
+      const result = await fetchExpectedSha('1.4.304.0', 'vulkansdk-linux-x86_64-1.4.304.0.tar.xz')
+      expect(result).toBe('expected-sha')
+      expect(httpDownloadMock).toHaveBeenCalledWith('https://sdk.lunarg.com/sdk/sha/1.4.304.0/linux/vulkansdk-linux-x86_64-1.4.304.0.tar.xz.json')
     })
 
     it('fetchExpectedSha handles invalid response', async () => {
@@ -362,17 +350,7 @@ describe('downloader', () => {
       const httpDownloadMock = http.download as jest.Mock
       httpDownloadMock.mockResolvedValue(JSON.stringify({ invalid: 'response' }))
 
-      // Temporarily remove JEST_WORKER_ID
-      const originalJestWorkerId = process.env.JEST_WORKER_ID
-      delete process.env.JEST_WORKER_ID
-
-      try {
-        await expect(fetchExpectedSha('1.4.304.0', 'vulkan_sdk.tar.xz')).rejects.toThrow('Unexpected response shape from Lunarg SHA API')
-      } finally {
-        if (originalJestWorkerId) {
-          process.env.JEST_WORKER_ID = originalJestWorkerId
-        }
-      }
+      await expect(fetchExpectedSha('1.4.304.0', 'vulkan_sdk.tar.xz')).rejects.toThrow('Unexpected response shape from Lunarg SHA API')
     })
 
     it('fetchExpectedSha propagates a JSON parse error for a malformed body', async () => {
@@ -382,16 +360,7 @@ describe('downloader', () => {
       const httpDownloadMock = http.download as jest.Mock
       httpDownloadMock.mockResolvedValue('this is not json {{{')
 
-      const originalJestWorkerId = process.env.JEST_WORKER_ID
-      delete process.env.JEST_WORKER_ID
-
-      try {
-        await expect(fetchExpectedSha('1.4.304.0', 'vulkan_sdk.tar.xz')).rejects.toThrow(SyntaxError)
-      } finally {
-        if (originalJestWorkerId) {
-          process.env.JEST_WORKER_ID = originalJestWorkerId
-        }
-      }
+      await expect(fetchExpectedSha('1.4.304.0', 'vulkan_sdk.tar.xz')).rejects.toThrow(SyntaxError)
     })
 
     it('fetchExpectedSha handles network error', async () => {
@@ -400,17 +369,7 @@ describe('downloader', () => {
       const httpDownloadMock = http.download as jest.Mock
       httpDownloadMock.mockRejectedValue(new Error('Network error'))
 
-      // Temporarily remove JEST_WORKER_ID
-      const originalJestWorkerId = process.env.JEST_WORKER_ID
-      delete process.env.JEST_WORKER_ID
-
-      try {
-        await expect(fetchExpectedSha('1.4.304.0', 'vulkan_sdk.tar.xz')).rejects.toThrow('Network error')
-      } finally {
-        if (originalJestWorkerId) {
-          process.env.JEST_WORKER_ID = originalJestWorkerId
-        }
-      }
+      await expect(fetchExpectedSha('1.4.304.0', 'vulkan_sdk.tar.xz')).rejects.toThrow('Network error')
     })
   })
 })

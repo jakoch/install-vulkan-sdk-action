@@ -232,13 +232,6 @@ export function getVulkanSdkFilename(version: string): string {
  * Windows: https://vulkan.lunarg.com/sdk/sha/1.4.328.1/windows/vulkansdk-windows-X64-1.4.328.1.exe.json
  */
 export function fetchExpectedSha(version: string, fileName: string): Promise<string> {
-  // During unit tests (Jest) skip network calls and return an empty string.
-  const runningUnderJest = typeof process.env.JEST_WORKER_ID !== 'undefined'
-  if (runningUnderJest) {
-    core.info('Skipping fetchExpectedSha while running under Jest')
-    return Promise.resolve('')
-  }
-
   return new Promise((resolve, reject) => {
     const platformName = platform.getPlatform()
     const url = `https://sdk.lunarg.com/sdk/sha/${version}/${platformName}/${fileName}.json`
