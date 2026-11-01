@@ -61,12 +61,12 @@ jobs:
     strategy:
       matrix:
         config:
-          - { name: "Windows",       os: windows-latest }
-          - { name: "Ubuntu",        os: ubuntu-latest }
-          - { name: "MacOS",         os: macos-latest }
+          - { name: "Windows", os: windows-latest }
+          - { name: "Ubuntu", os: ubuntu-latest }
+          - { name: "MacOS", os: macos-latest }
           - { name: "Ubuntu 22 Arm", os: ubuntu-22.04-arm }
           - { name: "Ubuntu 24 Arm", os: ubuntu-24.04-arm }
-          - { name: "Windows Arm",   os: windows-11-arm }
+          - { name: "Windows Arm", os: windows-11-arm }
 
     steps:
       - name: Install Vulkan SDK
@@ -93,21 +93,21 @@ You can find all Inputs and Outputs and their default settings in the [action.ym
 
 The following inputs can be used as `steps.with` keys:
 
-| Name                     | Type    | Description                             | Default                 | Required |
-|--------------------------|---------|-----------------------------------------|-------------------------|----------|
-| `vulkan_version`         | String  | A Vulkan SDK version (eg. `1.3.231.1`). | If `vulkan_version` is not set, the latest version is used. | false |
-| `destination`            | String  | The Vulkan SDK installation folder.     | Windows: `C:\VulkanSDK`. Linux/MacOS: `%HOME/vulkan-sdk` | false |
-| `optional_components`    | String  | Comma-separated list of components to install. | Default: no optional components. | false |
-| `install_runtime`        | bool    | Windows only. Installs the vulkan runtime ('vulkan-1.dll') into a `runtime` folder inside `destination`, if true. Windows: `C:\VulkanSDK\{vulkan_version}\runtime\{x86,x64}`. | true | false |
-| `install_runtime_only`   | bool    | Windows only. Installs just the Vulkan Runtime components and disables the installation of the Vulkan SDK. Implicitly sets `install_runtime` to true. | false | false |
-| `cache`                  | bool    | Cache the Vulkan installation folder.   | true | false |
-| `cache_save_if`          | bool    | Condition, whether to save the cache.    | true | false |
-| `stripdown`              | bool    | Windows only. Whether to reduce the size of the SDK, before caching. | false | false |
-| `install_swiftshader`    | bool    | Windows only. Installs Google's SwiftShader software rasterizer. Default: false. | false | false
-| `swiftshader_destination`| String  | The installation folder for SwiftShader. | Windows: `C:\swiftshader`. Linux/MacOS: `%HOME/swiftshader` | false
-| `install_lavapipe`       | bool    | Installs Mesa's Lavapipe software rasterizer. Default: false. | false
-| `lavapipe_destination`   | String  | The installation folder for Lavapipe.    | Windows: `C:\lavapipe`. Linux/MacOS: `%HOME/lavapipe` | false
-| `github_token`           | String  | The Github token (github_token: ${{ secrets.GITHUB_TOKEN }}). | -- | false
+| Name                      | Type   | Description                                                                                                                                                                   | Default                                                     | Required |
+| ------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | -------- |
+| `vulkan_version`          | String | A Vulkan SDK version (eg. `1.3.231.1`).                                                                                                                                       | If `vulkan_version` is not set, the latest version is used. | false    |
+| `destination`             | String | The Vulkan SDK installation folder.                                                                                                                                           | Windows: `C:\VulkanSDK`. Linux/MacOS: `%HOME/vulkan-sdk`    | false    |
+| `optional_components`     | String | Comma-separated list of components to install.                                                                                                                                | Default: no optional components.                            | false    |
+| `install_runtime`         | bool   | Windows only. Installs the vulkan runtime ('vulkan-1.dll') into a `runtime` folder inside `destination`, if true. Windows: `C:\VulkanSDK\{vulkan_version}\runtime\{x86,x64}`. | true                                                        | false    |
+| `install_runtime_only`    | bool   | Windows only. Installs just the Vulkan Runtime components and disables the installation of the Vulkan SDK. Implicitly sets `install_runtime` to true.                         | false                                                       | false    |
+| `cache`                   | bool   | Cache the Vulkan installation folder.                                                                                                                                         | true                                                        | false    |
+| `cache_save_if`           | bool   | Condition, whether to save the cache.                                                                                                                                         | true                                                        | false    |
+| `stripdown`               | bool   | Windows only. Whether to reduce the size of the SDK, before caching.                                                                                                          | false                                                       | false    |
+| `install_swiftshader`     | bool   | Windows only. Installs Google's SwiftShader software rasterizer. Default: false.                                                                                              | false                                                       | false    |
+| `swiftshader_destination` | String | The installation folder for SwiftShader.                                                                                                                                      | Windows: `C:\swiftshader`. Linux/MacOS: `%HOME/swiftshader` | false    |
+| `install_lavapipe`        | bool   | Installs Mesa's Lavapipe software rasterizer. Default: false.                                                                                                                 | false                                                       |
+| `lavapipe_destination`    | String | The installation folder for Lavapipe.                                                                                                                                         | Windows: `C:\lavapipe`. Linux/MacOS: `%HOME/lavapipe`       | false    |
+| `github_token`            | String | The Github token (github_token: ${{ secrets.GITHUB_TOKEN }}).                                                                                                                 | --                                                          | false    |
 
 The GitHub token is only needed if your workflow makes more than 60 API requests, such as when using a large build matrix or building often.
 The GitHub token is needed by this action to fetch the latest release of a repository via the API (org/repo/releases/latest).
@@ -118,7 +118,7 @@ The action supports caching the Vulkan SDK using Github Actions cache.
 - To enable the cache, set `cache: true`. The cache is enabled by default.
 - The cache is saved if `cache_save_if` condition is true. The cache is saved by default.
 - The `cache_save_if` input allows you to conditionally save the cache,
-for example only on the main branch (`cache_save_if: ${{ github.ref_name == 'main' }}`).
+  for example only on the main branch (`cache_save_if: ${{ github.ref_name == 'main' }}`).
 - If `cache_save_if` is false, the cache will not be saved, but it can still be restored.
 
 There are two types of caches used by this action:
@@ -130,22 +130,22 @@ There are two types of caches used by this action:
 
 The following output variables are available:
 
-| Name               | Type    | Description                           |
-|--------------------|---------|---------------------------------------|
-| `VULKAN_VERSION`   | String  | The installed Vulkan SDK version.     |
-| `VULKAN_SDK`       | String  | The location of your Vulkan SDK files |
+| Name             | Type   | Description                           |
+| ---------------- | ------ | ------------------------------------- |
+| `VULKAN_VERSION` | String | The installed Vulkan SDK version.     |
+| `VULKAN_SDK`     | String | The location of your Vulkan SDK files |
 
 ### Environment Variables
 
 The following environment variables are set:
 
-| Name                | Type    |  Description                                               |
-|---------------------|---------|------------------------------------------------------------|
-| `VULKAN_VERSION`    | String  | The installed Vulkan SDK version.                          |
-| `VULKAN_SDK`        | String  | The location of your Vulkan SDK files                      |
-| `VK_LAYER_PATH`     | String  | Linux only: The location of /share/vulkan/explicit_layer.d |
-| `LD_LIBRARY_PATH`   | String  | Linux only: path to vulkan library                         |
-| `DYLD_LIBRARY_PATH` | String  | Mac only: path to vulkan library                           |
+| Name                | Type   | Description                                                |
+| ------------------- | ------ | ---------------------------------------------------------- |
+| `VULKAN_VERSION`    | String | The installed Vulkan SDK version.                          |
+| `VULKAN_SDK`        | String | The location of your Vulkan SDK files                      |
+| `VK_LAYER_PATH`     | String | Linux only: The location of /share/vulkan/explicit_layer.d |
+| `LD_LIBRARY_PATH`   | String | Linux only: path to vulkan library                         |
+| `DYLD_LIBRARY_PATH` | String | Mac only: path to vulkan library                           |
 
 ## About Vulkan and the Vulkan SDK
 

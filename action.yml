@@ -7,10 +7,10 @@
 
 name: "Install Vulkan SDK and Runtime"
 description: "Installs the Vulkan SDK and Runtime"
-author: 'jakoch'
+author: "jakoch"
 branding:
-  color: 'blue'
-  icon: 'download'
+  color: "blue"
+  icon: "download"
 
 inputs:
   vulkan_version:
@@ -60,5 +60,5 @@ outputs:
     description: "Location of the Vulkan SDK"
 
 runs:
-  using: 'node24'
-  main: 'dist/index.js'
+  using: "node24"
+  main: "dist/index.js"

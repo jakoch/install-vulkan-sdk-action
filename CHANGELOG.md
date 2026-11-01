@@ -3,7 +3,7 @@
 All changes to the project will be documented in this file.
 
 - The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The date format is YYYY-MM-DD.
 - The upcoming release version is named `vNext` and links to the changes between latest version tag and git HEAD.
 
@@ -12,11 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
 ### Fixed
+
 - Removed unit-test environment (JEST_WORKER_ID) bypasses in downloader and SHA verification modules (src/downloader.ts, src/verify.ts) = tests now use the same logic as real runs
 
 ## [1.7.0] - 2026-10-05
 
 ### Changed
+
 - `typescript` → 7 (closes #593)
 - Jest now transpiles TypeScript with `babel-jest` instead of `ts-jest`. `ts-jest`
   caps its `typescript` peer range at `<7`, and its runtime use of the TS compiler API
@@ -26,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `biome.json` migrated to schema 2.5.15
 
 ### Fixed
+
 - `tests/downloader.test.ts`: `fetchExpectedSha` tests replaced the `http.download`
   export, which did not affect the reference already captured by `src/downloader.ts`
 - `tests/versions_vulkan.test.ts`: the "null latest version" test spied on a module
@@ -35,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `resolveVersion()` was dead code and has been removed
 
 ### Testing
+
 - Statement coverage raised from 92.06% to 97.31% (216 tests, up from 191)
 - `tests/platform.test.ts`: 6 tests asserted against a `jest.fn()` that the test itself
   configured, so the real `getPlatform()` never ran and the suite passed even for
@@ -48,19 +52,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] - 2026-06-26
 
 ### Changed
+
 - replaced `@vercel/ncc` with `esbuild` for bundling (ncc can't bundle ESM-only packages)
 - dropped intermediate `tsc` step: esbuild compiles TypeScript directly
 - migrated build output from CJS to ESM
 
 ### Added
+
 - `typecheck` script: `tsc --noEmit` for type-checking only
 - Jest `moduleNameMapper` + manual mocks for ESM-only `@actions/*` packages
 
 ### Updated
+
 - all `@actions/*` deps to latest major versions (ESM-only)
 - `@types/node` → 26, `typescript` → 6, `esbuild` → 0.28
 
 ### Removed
+
 - `@vercel/ncc`
 - `lib/` output folder
 - `dist/*.js.map` source maps
@@ -68,23 +76,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.5] - 2026-05-26
 
 ### Fixed
+
 - raise Node version to 24 to avoid Node20 deprecation warning
 
 ## [1.5.4] - 2026-05-25
 
 ### Fixed
+
 - Fixed CMake `FindVulkan` failure on Linux for SDK >= 1.4.350.0 where LunarG moved the loader to `lib/VulkanLoader/lib/`. [#581]
   - After extraction, symlinks are now created in `$VULKAN_SDK/lib/` so CMake finds the library at the expected location
   - `LD_LIBRARY_PATH` also includes the new `VulkanLoader/lib` path for direct runtime access
-   - Full backward compatibility: no-op for older SDK versions and non-Linux platforms
+  - Full backward compatibility: no-op for older SDK versions and non-Linux platforms
 
 ### Added
+
 - added integration test for Vulkan SDK verification (extends [#582])
 - Added `installLavapipeLinux()`, which installs lavapipe on Linux via system package manager [#578]
 
 ## [1.5.3] - 2026-05-20
 
 ### Fixed
+
 - Fixed version mismatch on cache restore by removing the prefix fallback cache key. [#580]
   - Only exact version matches now restore from cache
   - This prevents stale SDK data from being served on Linux/macOS and
@@ -93,11 +105,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.2] - 2026-05-09
 
 ## Changed
-  - security update: fast-xml-builder v1.1.5 to v1.2.0 (CVE-2026-44665)
-  - (internal) updated DevContainer
-    - update to Node v24 LTS
-    - removed usage of container features
-    - moved zsh install to Dockerfile
+
+- security update: fast-xml-builder v1.1.5 to v1.2.0 (CVE-2026-44665)
+- (internal) updated DevContainer
+  - update to Node v24 LTS
+  - removed usage of container features
+  - moved zsh install to Dockerfile
 
 ## [1.5.1] - 2026-04-24
 
@@ -113,6 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.0] - 2026-04-23
 
 ### Changed
+
 - raise Node version to 24
 - changed Vulkan SDK caching mechanism:
   - implemented a main-only producer model for cache writes
@@ -123,18 +137,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     but can still read from it if a main branch has previously written a compatible cache entry
 
 ## Fixed
+
 - fixed warning: Can't add secret mask for empty string, when calling core.setSecret
 - downgraded all @actions/* packages to pre-ESM majors, because of audit and resolve issues with ESM versions
 
 ## [1.4.0] - 2026-01-08
 
 ### Added
+
 - The action automatically inserts the software rasterizer drivers into the Windows registry, removing the need for a manual registry entry (reg add).
 
 ### Changed
+
 - Code style improvements: removed superfluous @export annotations, ordered imports, and removed unused methods.
 
 ### Removed
+
 - Removed VK_DRIVER_FILES approach because environment variables are ignored when running with elevated permissions on CI.
 - Removed adding software rasterizers to the PATH environment variable.
   After registering, the location of the DLLs is already known via the chain: ICD → registry → JSON → DLL.
@@ -142,9 +160,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2026-01-06
 
 ### Added
+
 - Added caching to installer_swiftshader and installer_lavapipe, [#492](https://github.com/jakoch/install-vulkan-sdk-action/issues/492)
 
 ### Changed
+
 - The method github.getLatestRelease() was changed to also allow API Auth using
   GITHUB_TOKEN and avoid hitting the rate-limit. The method will now work with
   and without TOKEN auth. [#544](https://github.com/jakoch/install-vulkan-sdk-action/issues/544)
@@ -152,6 +172,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.8] - 2025-10-31
 
 ### Added
+
 - Added `install_runtime_only`, which allows the user to only install the Vulkan Runtime Components
   without installing the full Vulkan SDK, [#530](https://github.com/jakoch/install-vulkan-sdk-action/issues/530)
   This flag implicitly sets `install_runtime` to `true`.
@@ -161,11 +182,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.7] - 2025-10-13
 
 ### Fixed
+
 - Updated workflow, because lowest available version is 1.3.268.0 (all older version are removed)
 
 ## [1.2.6] - 2025-09-22
 
 ### Fixed
+
 - Updated `getCacheKeys` function to remove the installation path parameter.
 - Modified `getVulkanSdk` to align with the new `getCacheKeys` signature.
 - Adjusted Vulkan runtime installation calls to match updated parameters.
@@ -229,6 +252,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added coverage upload to codecov.io
 
 ### Changed
+
 - adjusted the Jest configuration to generate coverage information
   based on the `/src` folder, not exclusively on the existing test files
 - fixed VK_LAYER_PATH, use `share` instead of `etc`: `.../share/vulkan/explicit_layer.d`
@@ -243,10 +267,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2025-02-04
 
 ### Added
+
 - install Vulkan SDK for MACOS, [#293](https://github.com/jakoch/install-vulkan-sdk-action/issues/293)
 - install Vulkan SDK for ARM64 (aarch64) on Windows and Linux, [#487](https://github.com/jakoch/install-vulkan-sdk-action/issues/487)
 
 ### Changed
+
 - moved downloader.is_downloadable() to http.isDownloadable()
 - moved downloader.compareVersionNumbers() to versions.compare()
 - applied changes according to "useNamingConvention"
@@ -256,12 +282,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.6] - 2025-01-30
 
 ### Added
+
 - added biome
 - updated install verify step: if vulkaninfo exists, run "vulkaninfo --summary"
 
 ### Changed
+
 - updated devcontainer incl. Dockerfile
-- renamed __tests__ folder to tests
+- renamed **tests** folder to tests
 - removed eslint and prettier
 - fixed linter and formatting issues found by biome
 
@@ -289,7 +317,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - action:
   - handle extraction of "tar.xz" archives, because archive type changed
-    - "tar.xz" for all versions greater      1.3.261.1
+    - "tar.xz" for all versions greater 1.3.261.1
     - "tar.gz" for all versions lesser/equal 1.3.250.1
 - github workflows:
   - allow manual workflow triggering
