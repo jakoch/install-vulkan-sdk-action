@@ -47,7 +47,7 @@
     "@actions/tool-cache": "^4"
   },
   "devDependencies": {
-    "@babel/core": "^7",
+    "@babel/core": "^8",
     "@babel/preset-env": "^7",
     "@babel/preset-typescript": "^7",
     "@biomejs/biome": "^2",
