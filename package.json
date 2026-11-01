@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7",
-    "@babel/preset-env": "^7",
+    "@babel/preset-env": "^8",
     "@babel/preset-typescript": "^7",
     "@biomejs/biome": "^2",
     "@types/jest": "^30",
