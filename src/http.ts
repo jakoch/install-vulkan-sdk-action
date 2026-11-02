@@ -7,7 +7,7 @@ import * as core from '@actions/core'
 import * as httpm from '@actions/http-client'
 
 export const client: httpm.HttpClient = new httpm.HttpClient('install-vulkan-sdk-action', [], {
-  keepAlive: false,
+  keepAlive: true,
   allowRedirects: true,
   maxRedirects: 3
 })
@@ -48,8 +48,6 @@ export async function isDownloadable(name: string, version: string, url: string)
   } catch (error) {
     // Rethrow the error to let the caller handle it.
     // This enables retrying with a lower version using a for-loop with try-catch.
-    if (error instanceof Error) {
-      throw error
-    }
+    throw error instanceof Error ? error : new Error(`HEAD request failed for ${url}: ${String(error)}`)
   }
 }

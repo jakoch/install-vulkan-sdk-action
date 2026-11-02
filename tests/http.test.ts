@@ -86,12 +86,12 @@ describe('http', () => {
     expect(core.info).not.toHaveBeenCalled()
   })
 
-  it('should swallow non-Error rejections from client.head', async () => {
+  it('should throw error for non-Error rejections from client.head', async () => {
     // Mock a rejection with a non-Error value (e.g., a string)
     mockHead.mockRejectedValue('string error')
 
-    // The implementation catches non-Error and does not rethrow; function should resolve
-    await expect(isDownloadable('test-package', '1.0.0', 'https://example.com/weird')).resolves.toBeUndefined()
+    // The implementation now rethrows non-Error as an Error
+    await expect(isDownloadable('test-package', '1.0.0', 'https://example.com/weird')).rejects.toThrow('string error')
   })
 })
 
