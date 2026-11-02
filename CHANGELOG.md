@@ -11,9 +11,22 @@ All changes to the project will be documented in this file.
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+## [1.8.0] - 2026-11-02
+
+### Changed
+
+- `biome.json` migrated to schema 2.6.4
+- HTTP client uses `keepAlive: true` for connection reuse across HEAD, download, and SHA requests
+- `versions.compare()` replaces lexicographic version comparison
+- Jest `coverageThreshold` raised to 90% for statements, branches, functions, and lines
+- Coverage threshold enforced at 90% globally
+- Removed unit-test environment (JEST_WORKER_ID) bypasses in downloader and
+  SHA verification modules (src/downloader.ts, src/verify.ts) = tests now use the same logic as real runs
+
 ### Fixed
 
-- Removed unit-test environment (JEST_WORKER_ID) bypasses in downloader and SHA verification modules (src/downloader.ts, src/verify.ts) = tests now use the same logic as real runs
+- `getUrlVulkanRuntime()`: full version catalog now logs only on final failure after all retries exhausted, not on every fallback attempt
+- delete downloaded installers after installation
 
 ## [1.7.0] - 2026-10-05
 
@@ -344,7 +357,8 @@ All changes to the project will be documented in this file.
 
 <!-- Section for Reference Links -->
 
-[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.7.0...HEAD
+[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.5...v1.6.0
 [1.5.5]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.4...v1.5.5
