@@ -127,7 +127,6 @@ export async function getUrlVulkanRuntime(version: string): Promise<string> {
       } catch (error) {
         // if download not available, try a lower version
         core.info(`Attempt ${attempt}: Vulkan runtime for version ${currentVersion} is not downloadable.`)
-        core.info(`Available versions: ${JSON.stringify(availableVersions, null, 2)}`)
 
         const lowerVersion = await versionsVulkan.getLowerVersion(currentVersion, availableVersions.versions)
 
@@ -139,6 +138,8 @@ export async function getUrlVulkanRuntime(version: string): Promise<string> {
         currentVersion = lowerVersion
       }
     }
+    // Log the full version catalog only on final failure after all retries exhausted
+    core.info(`Available versions: ${JSON.stringify(availableVersions, null, 2)}`)
     throw new Error('Failed to find a downloadable Vulkan runtime version after 3 attempts.')
   } catch (error) {
     errors.handleError(error as Error)
