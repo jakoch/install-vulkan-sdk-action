@@ -207,6 +207,56 @@ describe('installer_vulkan', () => {
     expect(retZip).toBe(zipDest)
   })
 
+  it('getInstallerNameMac handles version boundaries correctly', () => {
+    // version <= '1.4.304.0'
+    expect(installer.getInstallerNameMac('1.3.290.0')).toBe('InstallVulkan.app/Contents/MacOS/InstallVulkan')
+    expect(installer.getInstallerNameMac('1.4.304.0')).toBe('InstallVulkan.app/Contents/MacOS/InstallVulkan')
+
+    // version >= '1.4.304.1' && version < '1.4.313.0'
+    expect(installer.getInstallerNameMac('1.4.304.1')).toBe('InstallVulkan-1.4.304.1.app/Contents/MacOS/InstallVulkan-1.4.304.1')
+    expect(installer.getInstallerNameMac('1.4.312.0')).toBe('InstallVulkan-1.4.312.0.app/Contents/MacOS/InstallVulkan-1.4.312.0')
+
+    // version >= '1.4.313.0'
+    expect(installer.getInstallerNameMac('1.4.313.0')).toBe('vulkansdk-macOS-1.4.313.0.app/Contents/MacOS/vulkansdk-macOS-1.4.313.0')
+    expect(installer.getInstallerNameMac('1.4.1000.0')).toBe('vulkansdk-macOS-1.4.1000.0.app/Contents/MacOS/vulkansdk-macOS-1.4.1000.0')
+  })
+
+  it('installVulkanSdk switches between DMG and ZIP on macOS based on version 1.3.290.0', async () => {
+    Object.defineProperty(platform, 'IS_MAC', { value: true, configurable: true })
+    ;(child.execSync as jest.Mock).mockImplementation(() => Buffer.from(''))
+    ;(archive.extract as jest.Mock) = jest.fn().mockResolvedValue(path.join(tmpRoot, 'extracted'))
+
+    const sdkPath = '/tmp/fake.sdk'
+    const destination = path.join(tmpRoot, 'mac_switch')
+
+    // 1.3.290.0 should use DMG path (calls hdiutil)
+    await installer.installVulkanSdk(sdkPath, destination, '1.3.290.0', [])
+    expect(child.execSync).toHaveBeenCalledWith(expect.stringContaining('hdiutil attach'))
+
+    jest.clearAllMocks()
+
+    // 1.3.291.0 (actually 1.3.296.0+) should use ZIP path (calls archive.extract)
+    await installer.installVulkanSdk(sdkPath, destination, '1.3.296.0', [])
+    expect(archive.extract).toHaveBeenCalled()
+    expect(child.execSync).not.toHaveBeenCalledWith(expect.stringContaining('hdiutil attach'))
+  })
+
+  it('installVulkanSdk switches correctly for 1.3.1000.0 (numeric vs lexicographic)', async () => {
+    Object.defineProperty(platform, 'IS_MAC', { value: true, configurable: true })
+    ;(child.execSync as jest.Mock).mockImplementation(() => Buffer.from(''))
+    ;(archive.extract as jest.Mock) = jest.fn().mockResolvedValue(path.join(tmpRoot, 'extracted'))
+
+    const sdkPath = '/tmp/fake.sdk'
+    const destination = path.join(tmpRoot, 'mac_switch_large')
+
+    // 1.3.1000.0 is > 1.3.290.0, so it should use ZIP path
+    // Lexicographically "1.3.1000.0" < "1.3.290.0" (true because "1" < "2")
+    // If it were string comparison, it would pick DMG. ZIP proves numeric comparison.
+    await installer.installVulkanSdk(sdkPath, destination, '1.3.1000.0', [])
+    expect(archive.extract).toHaveBeenCalled()
+    expect(child.execSync).not.toHaveBeenCalledWith(expect.stringContaining('hdiutil attach'))
+  })
+
   it('installVulkanSdkWindows should call execSync and return destination', async () => {
     ;(child.execSync as jest.Mock).mockImplementation(() => Buffer.from(''))
     Object.defineProperty(platform, 'IS_WINDOWS', { value: true, configurable: true })

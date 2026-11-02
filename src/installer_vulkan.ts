@@ -9,6 +9,7 @@ import * as path from 'node:path'
 import * as core from '@actions/core'
 import * as archive from './archive'
 import * as platform from './platform'
+import * as versions from './versions'
 
 /**
  * Install the Vulkan SDK.
@@ -34,7 +35,7 @@ export async function installVulkanSdk(
 
   if (platform.IS_MAC) {
     // handle version dependend installation procedure change (dmg/zip)
-    if (version <= '1.3.290.0') {
+    if (versions.compare(version, '1.3.290.0') <= 0) {
       // the sdk is a .dmg
       installPath = await installVulkanSdkMacDmg(sdkPath, versionizedDestinationPath, version, optionalComponents)
     } else {
@@ -86,7 +87,7 @@ export async function installVulkanSdkLinux(
  */
 export function ensureVulkanLoaderSymlinks(installPath: string, version: string): void {
   if (!(platform.IS_LINUX || platform.IS_LINUX_ARM)) return
-  if (version < '1.4.350.0') return
+  if (versions.compare(version, '1.4.350.0') < 0) return
 
   const sdkArchPath = getVulkanSdkPath(installPath, version)
   const sdkLibDir = path.join(sdkArchPath, 'lib')
@@ -264,13 +265,13 @@ export async function installVulkanSdkMacZip(
  * @param {string} version - The version of the Vulkan SDK.
  * @return {*}  {string} - The installer name.
  */
-function getInstallerNameMac(version: string): string {
+export function getInstallerNameMac(version: string): string {
   let installer = ''
-  if (version <= '1.4.304.0') {
+  if (versions.compare(version, '1.4.304.0') <= 0) {
     installer = `InstallVulkan.app/Contents/MacOS/InstallVulkan`
-  } else if (version >= '1.4.304.1' && version < '1.4.313.0') {
+  } else if (versions.compare(version, '1.4.304.1') >= 0 && versions.compare(version, '1.4.313.0') < 0) {
     installer = `InstallVulkan-${version}.app/Contents/MacOS/InstallVulkan-${version}`
-  } else if (version >= '1.4.313.0') {
+  } else if (versions.compare(version, '1.4.313.0') >= 0) {
     installer = `vulkansdk-macOS-${version}.app/Contents/MacOS/vulkansdk-macOS-${version}`
   }
   return installer
