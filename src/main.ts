@@ -4,6 +4,7 @@
  *----------------------------------------------------------------------------*/
 
 import * as path from 'node:path'
+import * as fs from 'node:fs'
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
 import * as downloader from './downloader'
@@ -16,6 +17,23 @@ import * as installerVulkan from './installer_vulkan'
 import * as platform from './platform'
 import * as versions from './versions'
 import * as versionsVulkan from './versions_vulkan'
+
+/**
+ * Clean up a downloaded installer archive file.
+ *
+ * @param filePath - Path to the installer archive to delete.
+ * @param label - Human-readable label for logging (e.g., "SDK", "Runtime").
+ */
+function cleanupInstallerArchive(filePath: string | undefined, label: string): void {
+  if (filePath && fs.existsSync(filePath)) {
+    try {
+      fs.unlinkSync(filePath)
+      core.info(`🗑️ Cleaned up ${label} installer archive: ${filePath}`)
+    } catch (error) {
+      core.warning(`Failed to remove ${label} installer archive: ${(error as Error).message}`)
+    }
+  }
+}
 
 /**
  * Get Cache Keys
@@ -97,8 +115,13 @@ async function getVulkanSdk(
   */
 
   // Download and install SDK
-  const vulkanSdkPath = await downloader.downloadVulkanSdk(version)
-  installPath = await installerVulkan.installVulkanSdk(vulkanSdkPath, destination, version, optionalComponents)
+  let vulkanSdkPath: string | undefined
+  try {
+    vulkanSdkPath = await downloader.downloadVulkanSdk(version)
+    installPath = await installerVulkan.installVulkanSdk(vulkanSdkPath, destination, version, optionalComponents)
+  } finally {
+    cleanupInstallerArchive(vulkanSdkPath, 'SDK')
+  }
 
   // Download and install Runtime after the SDK. This allows caching both.
   if ((platform.IS_WINDOWS || platform.IS_WINDOWS_ARM) && installRuntime) {
@@ -107,8 +130,13 @@ async function getVulkanSdk(
     // The last available version is 1.4.313.0.
     // It is now deprecated and no longer available for download.
     if (version <= '1.4.313.0') {
-      const vulkanRuntimePath = await downloader.downloadVulkanRuntime(version)
-      await installerVulkan.installVulkanRuntime(vulkanRuntimePath, destination, version)
+      let vulkanRuntimePath: string | undefined
+      try {
+        vulkanRuntimePath = await downloader.downloadVulkanRuntime(version)
+        await installerVulkan.installVulkanRuntime(vulkanRuntimePath, destination, version)
+      } finally {
+        cleanupInstallerArchive(vulkanRuntimePath, 'Runtime')
+      }
     }
     // The Vulkan Runtime is installed a part of the SDK installer, but we reposition it to the runtime folder.
     // From version 1.4.313.1 onwards, the runtime is included in the SDK installer.
@@ -165,20 +193,25 @@ export async function run(): Promise<void> {
      * ---------------------------------------------------------------------- */
 
     if ((platform.IS_WINDOWS || platform.IS_WINDOWS_ARM) && inputs.installRuntimeOnly) {
-      const vulkanRuntimePath = await downloader.downloadVulkanRuntime(version)
-      const runtimePath = await installerVulkan.installVulkanRuntime(vulkanRuntimePath, inputs.destination, version)
+      let vulkanRuntimePath: string | undefined
+      try {
+        vulkanRuntimePath = await downloader.downloadVulkanRuntime(version)
+        const runtimePath = await installerVulkan.installVulkanRuntime(vulkanRuntimePath, inputs.destination, version)
 
-      core.exportVariable('VULKAN_SDK', inputs.destination)
-      core.info(`✔️ [ENV] Set env variable VULKAN_SDK -> "${inputs.destination}".`)
+        core.exportVariable('VULKAN_SDK', inputs.destination)
+        core.info(`✔️ [ENV] Set env variable VULKAN_SDK -> "${inputs.destination}".`)
 
-      core.exportVariable('VULKAN_VERSION', version)
-      core.info(`✔️ [ENV] Set env variable VULKAN_VERSION -> "${version}".`)
+        core.exportVariable('VULKAN_VERSION', version)
+        core.info(`✔️ [ENV] Set env variable VULKAN_VERSION -> "${version}".`)
 
-      // Verify installation of Vulkan Runtime
-      if (installerVulkan.verifyInstallationOfRuntime(runtimePath)) {
-        core.info(`ℹ️ [INFO] Path to Vulkan Runtime: ${runtimePath}`)
-      } else {
-        core.warning(`Could not find Vulkan Runtime in ${runtimePath}`)
+        // Verify installation of Vulkan Runtime
+        if (installerVulkan.verifyInstallationOfRuntime(runtimePath)) {
+          core.info(`ℹ️ [INFO] Path to Vulkan Runtime: ${runtimePath}`)
+        } else {
+          core.warning(`Could not find Vulkan Runtime in ${runtimePath}`)
+        }
+      } finally {
+        cleanupInstallerArchive(vulkanRuntimePath, 'Runtime')
       }
     } else {
       /* ----------------------------------------------------------------------
