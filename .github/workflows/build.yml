@@ -18,6 +18,13 @@ on:
       - 'dev/*'
       - 'releases/*'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
 # ---------------------------------------------------------------------------------------
@@ -28,6 +35,8 @@ jobs:
 
     name: "Build and Test"
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+
     steps:
 
       - name: 🤘 Checkout Code
@@ -66,6 +75,7 @@ jobs:
     # install latest version sdk on all platforms
     name: Install latest SDK on ${{ matrix.config.OS }}
     runs-on: ${{ matrix.config.OS }}
+    timeout-minutes: 120
 
     strategy:
       fail-fast: false
@@ -157,6 +167,7 @@ jobs:
     # install old version sdk on all platforms
     name: Install old SDK on ${{ matrix.config.OS }}
     runs-on: ${{ matrix.config.OS }}
+    timeout-minutes: 120
 
     strategy:
       fail-fast: false
@@ -234,6 +245,7 @@ jobs:
     # install latest version of vulkan sdk and both rasterizers on windows
     name: Install rasterizer ${{ matrix.rasterizer }} on ${{ matrix.config.OS }}
     runs-on: ${{ matrix.config.OS }}
+    timeout-minutes: 120
 
     strategy:
       fail-fast: false
@@ -338,6 +350,7 @@ jobs:
 
     name: Install runtime_only with Lavapipe on ${{ matrix.config.OS }}
     runs-on: ${{ matrix.config.OS }}
+    timeout-minutes: 120
 
     strategy:
       fail-fast: false
