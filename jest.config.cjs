@@ -20,5 +20,13 @@ module.exports = {
     '!src/**/*.d.ts' // Exclude type definition files
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['json', 'lcov', 'text', 'clover']
+  coverageReporters: ['json', 'lcov', 'text', 'clover'],
+  coverageThreshold: {
+    global: {
+      statements: 90,
+      branches: 90,
+      functions: 90,
+      lines: 90
+    }
+  }
 }
