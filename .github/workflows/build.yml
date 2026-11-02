@@ -85,8 +85,8 @@ jobs:
           - { OS: windows-2025 }
           - { OS: ubuntu-24.04 }
           - { OS: ubuntu-24.04-arm }
-          - { OS: macos-15     }
-          #- { OS: macos-15-arm }
+          - { OS: macos-26     }
+          #- { OS: macos-26-arm }
           - { OS: windows-11-arm }
 
     steps:
@@ -177,8 +177,8 @@ jobs:
           - { OS: windows-2025 }
           - { OS: ubuntu-24.04 }
           #- { OS: ubuntu-24.04-arm } disabled, because downloads not ready yet
-          - { OS: macos-15     }
-          #- { OS: macos-15-arm }
+          - { OS: macos-26     }
+          #- { OS: macos-26-arm }
 
     steps:
 
@@ -255,8 +255,8 @@ jobs:
           - { OS: windows-2025 }
           #- { OS: ubuntu-24.04 }
           #- { OS: ubuntu-24.04-arm }
-          #- { OS: macos-15     }
-          #- { OS: macos-15-arm }
+          #- { OS: macos-26     }
+          #- { OS: macos-26-arm }
         rasterizer:
           - swiftshader
           - lavapipe
