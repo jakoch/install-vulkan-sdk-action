@@ -5,7 +5,14 @@
 
 import * as http from '../src/http'
 import * as core from '@actions/core'
-import { getLatestRelease, getLatestVersion, githubTokenStore, GithubTokenStore, type GithubRelease } from '../src/github'
+import {
+  getLatestRelease,
+  getLatestVersion,
+  getReleases,
+  githubTokenStore,
+  GithubTokenStore,
+  type GithubRelease
+} from '../src/github'
 
 jest.mock('../src/http')
 jest.mock('@actions/core')
@@ -60,6 +67,25 @@ describe('GitHub Release API', () => {
     const version = await getLatestVersion('owner', 'repo')
 
     expect(version).toBeNull()
+  })
+
+  test('getReleases should return the releases list', async () => {
+    ;(http.client.getJson as jest.Mock).mockResolvedValue({ result: [mockRelease] })
+
+    const result = await getReleases('owner', 'repo')
+
+    expect((http.client.getJson as jest.Mock).mock.calls[0][0]).toBe(
+      'https://api.github.com/repos/owner/repo/releases?per_page=100'
+    )
+    expect(result).toEqual([mockRelease])
+  })
+
+  test('getReleases should throw an error if no releases are found', async () => {
+    ;(http.client.getJson as jest.Mock).mockResolvedValue({ result: null })
+
+    await expect(getReleases('owner', 'repo')).rejects.toThrow(
+      "Unable to retrieve the releases from 'https://api.github.com/repos/owner/repo/releases?per_page=100'"
+    )
   })
 
   test('getLatestVersion should return null if release exists but tagName is missing', async () => {

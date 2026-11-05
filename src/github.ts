@@ -21,6 +21,8 @@ export interface GithubRelease {
   // biome-ignore lint: style/useNamingConvention
   upload_url: string
   assets: GithubReleaseAssets[]
+  draft?: boolean
+  prerelease?: boolean
 }
 
 /**
@@ -45,6 +47,25 @@ export class GithubTokenStore {
 export const githubTokenStore = new GithubTokenStore()
 
 /**
+ * Get the request headers for GitHub API calls, using the stored token when
+ * one is available.
+ */
+// biome-ignore lint/style/useNamingConvention: Authorization is an HTTP header name.
+function getRequestHeaders(): { Authorization: string } | undefined {
+  const authToken = githubTokenStore.getToken()
+
+  if (!authToken) {
+    core.info(
+      'To avoid hitting GitHub API rate limits, please set github_token as action input or a GITHUB_TOKEN in your environment.'
+    )
+    return undefined
+  }
+
+  // biome-ignore lint/style/useNamingConvention: Authorization is an HTTP header name.
+  return { Authorization: `Bearer ${authToken}` }
+}
+
+/**
  * Get the latest Github Release as JSON.
  *
  * This is a get request to an GITHUB REST API endpoint,
@@ -61,24 +82,39 @@ export const githubTokenStore = new GithubTokenStore()
  */
 export const getLatestRelease = async (owner: string, repo: string): Promise<GithubRelease | null> => {
   const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`
+  const headers = getRequestHeaders()
 
-  let response: { result: GithubRelease | null }
-
-  const authToken = githubTokenStore.getToken()
-
-  if (!authToken) {
-    core.info(
-      'To avoid hitting GitHub API rate limits, please set github_token as action input or a GITHUB_TOKEN in your environment.'
-    )
-    response = await http.client.getJson<GithubRelease>(url)
-  } else {
-    // biome-ignore lint: lint/style/useNamingConvention: This object property name part should be in camelCase.
-    const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {}
-    response = await http.client.getJson<GithubRelease>(url, headers)
-  }
+  const response = headers
+    ? await http.client.getJson<GithubRelease>(url, headers)
+    : await http.client.getJson<GithubRelease>(url)
 
   if (!response.result) {
     throw new Error(`Unable to retrieve the latest release versions from '${url}'`)
+  }
+
+  return response.result
+}
+
+/**
+ * Get the releases of a repository as JSON, newest first.
+ *
+ * Draft and prerelease entries are included in the response; callers must
+ * filter them out when they should not be considered.
+ *
+ * @param {string} owner - The GitHub owner (username or organization).
+ * @param {string} repo - The name of the GitHub repository.
+ * @return {*}  {(Promise<GithubRelease[]>)}
+ */
+export const getReleases = async (owner: string, repo: string): Promise<GithubRelease[]> => {
+  const url = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=100`
+  const headers = getRequestHeaders()
+
+  const response = headers
+    ? await http.client.getJson<GithubRelease[]>(url, headers)
+    : await http.client.getJson<GithubRelease[]>(url)
+
+  if (!response.result) {
+    throw new Error(`Unable to retrieve the releases from '${url}'`)
   }
 
   return response.result

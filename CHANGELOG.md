@@ -11,6 +11,16 @@ All changes to the project will be documented in this file.
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
+### Fixed
+
+- Linux ARM: `vulkan_version: latest` now resolves to the newest `vulkan-sdk-arm`
+  release with an asset usable on the detected Ubuntu version, instead of LunarG's
+  latest version which may not have an ARM build yet.
+- Linux ARM: Ubuntu 26.04 now prefers the 26.04 asset and falls back to the 24.04
+  asset only when the native build is not available.
+- Linux ARM: unavailable explicit versions now fail with a clear error that lists
+  the attempted asset URLs and points to the available releases.
+
 ## [1.8.0] - 2026-11-02
 
 ### Changed
