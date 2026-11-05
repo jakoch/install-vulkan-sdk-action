@@ -44,7 +44,8 @@ This action has the following features:
   - The action automatically retrieves the latest Vulkan SDK version if no specific version is provided.
   - On Linux ARM, `latest` resolves to the newest published ARM build for the detected
     Ubuntu version, so a new LunarG release is not requested before the ARM build exists.
-    If a native build is not available yet, the previous Ubuntu LTS build is used as a fallback.
+    Only assets built for that Ubuntu version are used; if the newest SDK version has no
+    build for it, the newest SDK version that does is selected.
 - The installation of optional SDK components is supported.
 - The action can be used to install the Vulkan Runtime (Windows only) using download retries and automatic version lowering.
 - This action allows you to install just the Vulkan Runtime, without the full Vulkan SDK (Windows only).
@@ -186,8 +187,9 @@ tarballs for Linux and built on Github Actions runners
 (ubuntu-24.04-arm, ubuntu-26.04-arm).
 
 The installer uses releases from https://github.com/jakoch/vulkan-sdk-arm.
-For Ubuntu 26.04 the native 26.04 build is preferred; the 24.04 build is used
-as a fallback until the 26.04 asset is published.
+Only assets built for the detected Ubuntu version are used. If the newest SDK
+version has not been built for it yet, the newest SDK version that has a build
+for it is installed. 24.04 assets are never installed on 26.04.
 
 Currently (02-2025), KHRONOS has no plans to modify the official tarball to
 include prebuilt ARM binaries or to release or update the Ubuntu packages for ARM.

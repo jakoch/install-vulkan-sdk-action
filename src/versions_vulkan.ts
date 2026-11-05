@@ -136,14 +136,7 @@ export async function resolveVersion(version: string): Promise<string> {
         try {
           const latestArmRelease = await vulkanSdkArm.getLatestArmRelease()
           if (latestArmRelease) {
-            const preferredDistribution = vulkanSdkArm.getLinuxArmDistributionPreference()[0]
-            if (latestArmRelease.distribution !== preferredDistribution) {
-              core.warning(
-                `No Vulkan SDK ARM build is available for Ubuntu ${preferredDistribution}; ` +
-                  `using the Ubuntu ${latestArmRelease.distribution} build instead.`
-              )
-            }
-            core.info(`Latest ARM Version: ${latestArmRelease.version}`)
+            core.info(`Latest ARM Version: ${latestArmRelease.version} (Ubuntu ${latestArmRelease.distribution})`)
             return latestArmRelease.version
           }
 

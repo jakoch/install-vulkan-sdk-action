@@ -56,40 +56,22 @@ export async function getUrlVulkanSdk(version: string): Promise<string> {
       vulkanSdkUrl = `${downloadBaseUrl}/VulkanSDK-${version}-Installer.exe`
     }
   } else if (platform.IS_LINUX_ARM) {
-    const detectedDistribution = platform.getLinuxDistributionVersionId()
-    const distributions = vulkanSdkArm.getLinuxArmDistributionPreference()
-    const candidates = distributions.map(distribution => ({
-      distribution,
-      url: vulkanSdkArm.getArmDownloadUrl(version, distribution)
-    }))
+    // Only use an asset built for the detected Ubuntu version. There is no
+    // cross-distro fallback; an older SDK version built for the same distro is
+    // selected during "latest" resolution instead.
+    const distribution = vulkanSdkArm.getLinuxArmDistribution()
+    vulkanSdkUrl = vulkanSdkArm.getArmDownloadUrl(version, distribution)
 
-    // Try an exact distribution match first, then fall back to the previous
-    // LTS if the current release does not contain an asset for this Ubuntu
-    // version yet.
-    for (const candidate of candidates) {
-      try {
-        await http.isDownloadable('VULKAN_SDK', version, candidate.url)
-        if (candidate.distribution !== distributions[0]) {
-          core.warning(
-            `No Vulkan SDK ARM build is available for Ubuntu ${distributions[0]} at version ${version}; ` +
-              `using the Ubuntu ${candidate.distribution} build instead.`
-          )
-        }
-        vulkanSdkUrl = candidate.url
-        break
-      } catch {
-        core.info(`Vulkan SDK ${version} for Ubuntu ${candidate.distribution} ARM is not available.`)
-      }
-    }
-
-    if (vulkanSdkUrl === '') {
+    try {
+      await http.isDownloadable('VULKAN_SDK', version, vulkanSdkUrl)
+    } catch {
       throw new Error(
-        `No Vulkan SDK ARM build is available for Ubuntu ${detectedDistribution || 'unknown'} at version ${version}. ` +
-          `Tried: ${candidates.map(candidate => candidate.url).join(', ')}. ` +
+        `No Vulkan SDK ARM build is available for Ubuntu ${distribution} at version ${version}. ` +
+          `Tried: ${vulkanSdkUrl}. ` +
           `The version may not have been published by ` +
-          `${vulkanSdkArm.ARM_REPO_OWNER}/${vulkanSdkArm.ARM_REPO_NAME} yet. ` +
+          `${vulkanSdkArm.ARM_REPO_OWNER}/${vulkanSdkArm.ARM_REPO_NAME} for Ubuntu ${distribution} yet. ` +
           `Check https://github.com/${vulkanSdkArm.ARM_REPO_OWNER}/${vulkanSdkArm.ARM_REPO_NAME}/releases ` +
-          `or use vulkan_version: latest.`
+          `or use vulkan_version: latest to select the newest version with an Ubuntu ${distribution} build.`
       )
     }
   } else if (platform.IS_LINUX) {
@@ -110,7 +92,7 @@ export async function getUrlVulkanSdk(version: string): Promise<string> {
     vulkanSdkUrl = `${downloadBaseUrl}/vulkansdk-macos-${version}.${extension}`
   }
 
-  // Linux ARM performs a HEAD request per distribution candidate above.
+  // Linux ARM performs the HEAD request above.
   if (!platform.IS_LINUX_ARM) {
     await http.isDownloadable('VULKAN_SDK', version, vulkanSdkUrl)
   }

@@ -199,21 +199,23 @@ describe('downloader', () => {
       expect(http.isDownloadable).toHaveBeenCalledTimes(1)
     })
 
-    it('should fall back to the 24.04 asset on Ubuntu 26.04 when 26.04 is not published', async () => {
+    it('should not fall back to the 24.04 asset on Ubuntu 26.04', async () => {
       ;(platform.getPlatform as jest.Mock).mockReturnValue('linux')
-      ;(http.isDownloadable as jest.Mock).mockRejectedValueOnce(new Error('26.04 not available'))
-      ;(http.isDownloadable as jest.Mock).mockResolvedValueOnce(true)
+      ;(http.isDownloadable as jest.Mock).mockRejectedValue(new Error('26.04 not available'))
       ;(platform.getLinuxDistributionVersionId as jest.Mock).mockReturnValue('26.04')
 
       Object.defineProperty(platform, 'IS_LINUX_ARM', { value: true, configurable: true })
 
       const version = '1.4.363.0'
-      const expectedUrl = `https://github.com/jakoch/vulkan-sdk-arm/releases/download/${version}/vulkansdk-ubuntu-24.04-arm-${version}.tar.xz`
 
-      const url = await getUrlVulkanSdk(version)
-      expect(url).toBe(expectedUrl)
-      expect(http.isDownloadable).toHaveBeenCalledTimes(2)
-      expect(core.warning).toHaveBeenCalledWith(expect.stringContaining('using the Ubuntu 24.04 build instead'))
+      await expect(getUrlVulkanSdk(version)).rejects.toThrow(
+        `No Vulkan SDK ARM build is available for Ubuntu 26.04 at version ${version}`
+      )
+      expect(http.isDownloadable).toHaveBeenCalledTimes(1)
+      expect((http.isDownloadable as jest.Mock).mock.calls[0][2]).toBe(
+        `https://github.com/jakoch/vulkan-sdk-arm/releases/download/${version}/vulkansdk-ubuntu-26.04-arm-${version}.tar.xz`
+      )
+      expect((http.isDownloadable as jest.Mock).mock.calls[0][2]).not.toContain('ubuntu-24.04')
     })
 
     it('should throw a clear error when no Linux ARM asset is available', async () => {

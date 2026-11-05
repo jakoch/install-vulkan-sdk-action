@@ -143,7 +143,6 @@ describe('versions_vulkan', () => {
     beforeEach(() => {
       Object.defineProperty(platform, 'IS_LINUX_ARM', { value: false })
       ;(vulkanSdkArm.getLatestArmRelease as jest.Mock).mockResolvedValue(null)
-      ;(vulkanSdkArm.getLinuxArmDistributionPreference as jest.Mock).mockReturnValue(['24.04'])
     })
 
     it('should resolve "latest" to the latest available ARM release on Linux ARM', async () => {
@@ -158,20 +157,6 @@ describe('versions_vulkan', () => {
       expect(result).toBe('1.4.363.0')
       expect(vulkanSdkArm.getLatestArmRelease).toHaveBeenCalled()
       expect(http.client.getJson).not.toHaveBeenCalled()
-    })
-
-    it('should warn when the latest ARM release uses a fallback distribution', async () => {
-      Object.defineProperty(platform, 'IS_LINUX_ARM', { value: true })
-      ;(vulkanSdkArm.getLatestArmRelease as jest.Mock).mockResolvedValue({
-        version: '1.4.363.0',
-        distribution: '24.04'
-      })
-      ;(vulkanSdkArm.getLinuxArmDistributionPreference as jest.Mock).mockReturnValue(['26.04', '24.04'])
-
-      const result = await resolveVersion('latest')
-
-      expect(result).toBe('1.4.363.0')
-      expect(core.warning).toHaveBeenCalledWith(expect.stringContaining('using the Ubuntu 24.04 build instead'))
     })
 
     it('should fall back to the LunarG latest version if no ARM release is available', async () => {

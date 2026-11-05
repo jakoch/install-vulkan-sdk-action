@@ -22,34 +22,32 @@ export interface ArmSdkRelease {
   distribution: string
 }
 
-interface ArmReleaseWithAsset {
-  release: github.GithubRelease
-  distribution: string
-}
-
 /**
- * Get the Ubuntu distributions whose assets can be used on this machine,
- * most preferred first.
+ * Get the Ubuntu distribution used to select Vulkan SDK ARM builds.
  *
- * Newer Ubuntu releases can run binaries built for the previous LTS, so an
- * exact match is preferred and the previous LTS is used as a fallback.
+ * Only assets built for this distribution are considered. There is no
+ * cross-distro fallback: if the newest SDK version has no asset for this
+ * distribution, a lower SDK version built for the same distribution is used.
+ *
+ * For Ubuntu versions without a dedicated build, 24.04 is used as the
+ * compatibility baseline.
  */
-export function getLinuxArmDistributionPreference(): string[] {
+export function getLinuxArmDistribution(): string {
   const detectedDistribution = platform.getLinuxDistributionVersionId()
 
   if (detectedDistribution === '26.04') {
-    return ['26.04', '24.04']
+    return '26.04'
   }
   if (detectedDistribution === '24.04') {
-    return ['24.04']
+    return '24.04'
   }
   if (detectedDistribution === '22.04') {
-    return ['22.04']
+    return '22.04'
   }
 
   // vulkan-sdk-arm currently publishes Ubuntu 24.04 and 26.04 assets.
   // Keep 24.04 as the default for unknown distributions.
-  return ['24.04']
+  return '24.04'
 }
 
 /**
@@ -72,34 +70,31 @@ function releaseHasAsset(release: github.GithubRelease, distribution: string): b
 }
 
 /**
- * Get published vulkan-sdk-arm releases which contain an asset usable on this
- * machine, newest version first.
+ * Get published vulkan-sdk-arm releases which contain an asset for the given
+ * distribution, newest version first.
  */
-async function getArmReleasesWithAsset(): Promise<ArmReleaseWithAsset[]> {
+async function getArmReleasesForDistribution(distribution: string): Promise<github.GithubRelease[]> {
   const releases = await github.getReleases(ARM_REPO_OWNER, ARM_REPO_NAME)
-  const preferences = getLinuxArmDistributionPreference()
 
   return releases
     .filter(release => !release.draft && !release.prerelease)
-    .map(release => ({
-      release,
-      distribution: preferences.find(distribution => releaseHasAsset(release, distribution))
-    }))
-    .filter((entry): entry is ArmReleaseWithAsset => entry.distribution !== undefined)
-    .sort((a, b) => versions.compare(b.release.tag_name, a.release.tag_name))
+    .filter(release => releaseHasAsset(release, distribution))
+    .sort((a, b) => versions.compare(b.tag_name, a.tag_name))
 }
 
 /**
- * Find the newest vulkan-sdk-arm release which can be installed on this
- * machine.
+ * Find the newest vulkan-sdk-arm release with an asset for the detected Ubuntu
+ * distribution.
  *
- * The returned distribution may differ from the locally detected one when a
- * fallback asset is required.
+ * This only falls back across versions. A newer release which has no asset for
+ * the detected distribution is skipped in favor of an older release built for
+ * the same distribution.
  */
 export async function getLatestArmRelease(): Promise<ArmSdkRelease | null> {
-  const [latest] = await getArmReleasesWithAsset()
+  const distribution = getLinuxArmDistribution()
+  const [latest] = await getArmReleasesForDistribution(distribution)
   if (!latest) {
     return null
   }
-  return { version: latest.release.tag_name, distribution: latest.distribution }
+  return { version: latest.tag_name, distribution }
 }
