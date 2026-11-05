@@ -42,6 +42,9 @@ This action has the following features:
 
 - This action can be used to install the Vulkan SDK in your Github Action workflows.
   - The action automatically retrieves the latest Vulkan SDK version if no specific version is provided.
+  - On Linux ARM, `latest` resolves to the newest published ARM build for the detected
+    Ubuntu version, so a new LunarG release is not requested before the ARM build exists.
+    If a native build is not available yet, the previous Ubuntu LTS build is used as a fallback.
 - The installation of optional SDK components is supported.
 - The action can be used to install the Vulkan Runtime (Windows only) using download retries and automatic version lowering.
 - This action allows you to install just the Vulkan Runtime, without the full Vulkan SDK (Windows only).
@@ -64,8 +67,8 @@ jobs:
           - { name: "Windows", os: windows-latest }
           - { name: "Ubuntu", os: ubuntu-latest }
           - { name: "MacOS", os: macos-latest }
-          - { name: "Ubuntu 22 Arm", os: ubuntu-22.04-arm }
           - { name: "Ubuntu 24 Arm", os: ubuntu-24.04-arm }
+          - { name: "Ubuntu 26 Arm", os: ubuntu-26.04-arm }
           - { name: "Windows Arm", os: windows-11-arm }
 
     steps:
@@ -110,7 +113,9 @@ The following inputs can be used as `steps.with` keys:
 | `github_token`            | String | The Github token (github_token: ${{ secrets.GITHUB_TOKEN }}).                                                                                                                 | --                                                          | false    |
 
 The GitHub token is only needed if your workflow makes more than 60 API requests, such as when using a large build matrix or building often.
-The GitHub token is needed by this action to fetch the latest release of a repository via the API (org/repo/releases/latest).
+The GitHub token is needed by this action to fetch release information via the API.
+On Linux ARM the action reads the `jakoch/vulkan-sdk-arm` releases list to find the
+newest version with an asset for your Ubuntu version.
 
 #### Caching
 
@@ -177,10 +182,12 @@ to build and test Vulkan-based applications.
 ### What is the Vulkan SDK for ARM?
 
 The Vulkan SDK for ARM is an unofficial custom build SDK based on the official
-tarballs for Linux and build on Github Actions runners
-(ubuntu-24.04-arm, ubuntu-22.04-arm).
+tarballs for Linux and built on Github Actions runners
+(ubuntu-24.04-arm, ubuntu-26.04-arm).
 
 The installer uses releases from https://github.com/jakoch/vulkan-sdk-arm.
+For Ubuntu 26.04 the native 26.04 build is preferred; the 24.04 build is used
+as a fallback until the 26.04 asset is published.
 
 Currently (02-2025), KHRONOS has no plans to modify the official tarball to
 include prebuilt ARM binaries or to release or update the Ubuntu packages for ARM.

@@ -7,6 +7,7 @@ import * as core from '@actions/core'
 import * as http from './http'
 import * as platform from './platform'
 import * as versions from './versions'
+import * as vulkanSdkArm from './vulkan_sdk_arm'
 
 // Vulkan SDK Version Query and Download API
 // https://vulkan.lunarg.com/content/view/latest-sdk-version-api
@@ -131,6 +132,32 @@ export async function resolveVersion(version: string): Promise<string> {
   let versionToDownload: string = version
   if (version === 'latest') {
     try {
+      if (platform.IS_LINUX_ARM) {
+        try {
+          const latestArmRelease = await vulkanSdkArm.getLatestArmRelease()
+          if (latestArmRelease) {
+            const preferredDistribution = vulkanSdkArm.getLinuxArmDistributionPreference()[0]
+            if (latestArmRelease.distribution !== preferredDistribution) {
+              core.warning(
+                `No Vulkan SDK ARM build is available for Ubuntu ${preferredDistribution}; ` +
+                  `using the Ubuntu ${latestArmRelease.distribution} build instead.`
+              )
+            }
+            core.info(`Latest ARM Version: ${latestArmRelease.version}`)
+            return latestArmRelease.version
+          }
+
+          core.warning(
+            `Could not find a Vulkan SDK ARM build for this Ubuntu version in ` +
+              `${vulkanSdkArm.ARM_REPO_OWNER}/${vulkanSdkArm.ARM_REPO_NAME}. ` +
+              `Falling back to LunarG's latest version.`
+          )
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          core.warning(`Could not determine the latest Vulkan SDK ARM release: ${errorMessage}`)
+        }
+      }
+
       const latestVersion: LatestVersionResponse = await getLatestVersions()
       versionToDownload = getLatestVersionForPlatform(latestVersion)
       core.info(`Latest Version: ${versionToDownload}`)

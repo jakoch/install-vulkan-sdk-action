@@ -14,10 +14,12 @@ import * as core from '@actions/core'
 import * as http from '../src/http'
 import * as platform from '../src/platform'
 import * as versions from '../src/versions'
+import * as vulkanSdkArm from '../src/vulkan_sdk_arm'
 
 jest.mock('../src/http')
 jest.mock('../src/platform')
 jest.mock('../src/versions')
+jest.mock('../src/vulkan_sdk_arm')
 
 describe('versions_vulkan', () => {
   describe('getAvailableVersions', () => {
@@ -138,6 +140,83 @@ describe('versions_vulkan', () => {
   })
 
   describe('resolveVersion', () => {
+    beforeEach(() => {
+      Object.defineProperty(platform, 'IS_LINUX_ARM', { value: false })
+      ;(vulkanSdkArm.getLatestArmRelease as jest.Mock).mockResolvedValue(null)
+      ;(vulkanSdkArm.getLinuxArmDistributionPreference as jest.Mock).mockReturnValue(['24.04'])
+    })
+
+    it('should resolve "latest" to the latest available ARM release on Linux ARM', async () => {
+      Object.defineProperty(platform, 'IS_LINUX_ARM', { value: true })
+      ;(vulkanSdkArm.getLatestArmRelease as jest.Mock).mockResolvedValue({
+        version: '1.4.363.0',
+        distribution: '24.04'
+      })
+
+      const result = await resolveVersion('latest')
+
+      expect(result).toBe('1.4.363.0')
+      expect(vulkanSdkArm.getLatestArmRelease).toHaveBeenCalled()
+      expect(http.client.getJson).not.toHaveBeenCalled()
+    })
+
+    it('should warn when the latest ARM release uses a fallback distribution', async () => {
+      Object.defineProperty(platform, 'IS_LINUX_ARM', { value: true })
+      ;(vulkanSdkArm.getLatestArmRelease as jest.Mock).mockResolvedValue({
+        version: '1.4.363.0',
+        distribution: '24.04'
+      })
+      ;(vulkanSdkArm.getLinuxArmDistributionPreference as jest.Mock).mockReturnValue(['26.04', '24.04'])
+
+      const result = await resolveVersion('latest')
+
+      expect(result).toBe('1.4.363.0')
+      expect(core.warning).toHaveBeenCalledWith(expect.stringContaining('using the Ubuntu 24.04 build instead'))
+    })
+
+    it('should fall back to the LunarG latest version if no ARM release is available', async () => {
+      const mockLatestVersions = {
+        linux: '1.4.363.1',
+        mac: '1.4.363.1',
+        warm: '1.4.363.1',
+        windows: '1.4.363.1'
+      }
+      Object.defineProperty(platform, 'IS_WINDOWS', { value: false })
+      Object.defineProperty(platform, 'IS_WINDOWS_ARM', { value: false })
+      Object.defineProperty(platform, 'IS_LINUX', { value: true })
+      Object.defineProperty(platform, 'IS_LINUX_ARM', { value: true })
+      Object.defineProperty(platform, 'IS_MAC', { value: false })
+      ;(http.client.getJson as jest.Mock).mockResolvedValue({ result: mockLatestVersions })
+
+      const result = await resolveVersion('latest')
+
+      expect(result).toBe('1.4.363.1')
+      expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("Falling back to LunarG's latest version"))
+    })
+
+    it('should fall back to the LunarG latest version if the ARM release lookup fails', async () => {
+      const mockLatestVersions = {
+        linux: '1.4.363.1',
+        mac: '1.4.363.1',
+        warm: '1.4.363.1',
+        windows: '1.4.363.1'
+      }
+      Object.defineProperty(platform, 'IS_WINDOWS', { value: false })
+      Object.defineProperty(platform, 'IS_WINDOWS_ARM', { value: false })
+      Object.defineProperty(platform, 'IS_LINUX', { value: true })
+      Object.defineProperty(platform, 'IS_LINUX_ARM', { value: true })
+      Object.defineProperty(platform, 'IS_MAC', { value: false })
+      ;(vulkanSdkArm.getLatestArmRelease as jest.Mock).mockRejectedValue(new Error('API unavailable'))
+      ;(http.client.getJson as jest.Mock).mockResolvedValue({ result: mockLatestVersions })
+
+      const result = await resolveVersion('latest')
+
+      expect(result).toBe('1.4.363.1')
+      expect(core.warning).toHaveBeenCalledWith(
+        expect.stringContaining('Could not determine the latest Vulkan SDK ARM release: API unavailable')
+      )
+    })
+
     it('should resolve "latest" to the latest version for the platform', async () => {
       const mockLatestVersions = {
         linux: '1.4.304.0',
