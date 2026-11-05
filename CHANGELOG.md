@@ -11,18 +11,11 @@ All changes to the project will be documented in this file.
 
 - "It was a bright day in April, and the clocks were striking thirteen." - 1984
 
-### Fixed
+## [1.8.1] - 2026-11-05
 
-- Linux ARM: `vulkan_version: latest` now resolves to the newest `vulkan-sdk-arm`
-  release with an asset built for the detected Ubuntu version, instead of LunarG's
-  latest version which may not have an ARM build yet.
-- Linux ARM: Ubuntu 26.04 uses only the 26.04 asset. If the newest SDK version has
-  no 26.04 build, the newest older version with a 26.04 build is selected. 24.04
-  assets are never used on 26.04.
-- Linux ARM: unavailable explicit versions now fail with a clear error naming the
-  expected asset URL and pointing to the available releases.
+- Release with rebuild dist/index.js
 
-## [1.8.0] - 2026-11-02
+## [1.8.0] - 2026-11-05
 
 ### Changed
 
@@ -36,7 +29,17 @@ All changes to the project will be documented in this file.
 
 ### Fixed
 
-- `getUrlVulkanRuntime()`: full version catalog now logs only on final failure after all retries exhausted, not on every fallback attempt
+- Linux ARM:
+  - `vulkan_version: latest` now resolves to the newest `vulkan-sdk-arm` release
+    with an asset built for the detected Ubuntu version,
+    instead of LunarG's latest version which may not have an ARM build yet.
+  - Ubuntu 26.04 uses only the 26.04 asset. If the newest SDK version has
+    no 26.04 build, the newest older version with a 26.04 build is selected.
+    24.04 assets are never used on 26.04.
+  - unavailable explicit versions now fail with a clear error naming the
+    expected asset URL and pointing to the available releases.
+- `getUrlVulkanRuntime()`: full version catalog now logs only on final failure
+  after all retries exhausted, not on every fallback attempt
 - delete downloaded installers after installation
 
 ## [1.7.0] - 2026-10-05
@@ -368,7 +371,8 @@ All changes to the project will be documented in this file.
 
 <!-- Section for Reference Links -->
 
-[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.8.0...HEAD
+[vNext]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.8.1...HEAD
+[1.8.1]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/jakoch/install-vulkan-sdk-action/compare/v1.5.5...v1.6.0
